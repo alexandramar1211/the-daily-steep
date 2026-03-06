@@ -779,21 +779,9 @@
   }
 
   /* Playlist */
-  .playlist-list { list-style: none; margin-top: 0.5rem; }
-
-  .playlist-list li {
-    font-size: 0.82rem;
-    font-weight: 300;
-    color: rgba(255,255,255,0.9);
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.12);
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
-
-  .playlist-list li:last-child { border-bottom: none; }
-  .track-artist { color: rgba(255,255,255,0.55); font-size: 0.72rem; margin-left: 1rem; text-align: right; font-style: italic; }
+  .playlist-list { list-style: none; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .playlist-list li { border: none; padding: 0; }
+  .track-artist { color: var(--muted); font-size: 0.72rem; margin-left: 1rem; text-align: right; font-style: italic; }
 
   /* Ritual */
   .ritual-box { background: rgba(255,255,255,0.08); border-left: 2px solid rgba(125,211,252,0.6); padding: 1rem 1.2rem; margin-top: 0.5rem; }
@@ -2693,6 +2681,124 @@ function flipCard() {
   hint.classList.add('hidden');
 }
 
+// ─────────────────────────────────────────────
+// SPOTIFY TRACK ID LOOKUP
+// key: "title|||artist" → Spotify track ID
+// ─────────────────────────────────────────────
+const spotifyIds = {
+  // The Kooks, George Ezra, Death Cab
+  'Naive|||The Kooks':                              '2RUhtNBh43RtSg0WBPPq3m',
+  'Budapest|||George Ezra':                         '2ixsaeFioXJmMgkkbd4uj1',
+  'I Will Follow You Into the Dark|||Death Cab for Cutie': '3kZC0ZmFWrEHdUCmUqlvgZ',
+  'Two of Us|||The Beatles':                        '2CkLEDMwHMvX8Kj2Iiqxbb',
+  // Classical / ambient
+  'On the Nature of Daylight|||Max Richter':        '3gP02RFvQeoGEEhigIcxZd',
+  'Gymnopédie No.1|||Erik Satie':                   '5NGtFXVpXSvwunEIGeviY3',
+  'Experience|||Ludovico Einaudi':                  '5RBnfHZDOHZEHHDyPisR4e',
+  "Comptine d'un autre été|||Yann Tiersen":         '1qCkZnTAMFbFBOOSUoXCbS',
+  'Clair de Lune|||Claude Debussy':                 '1DpbZJlFNJmT2K95SXIIZW',
+  'Adagio for Strings|||Samuel Barber':             '55JqQMjDu0dGkGJC7HA2nA',
+  // Radiohead
+  'How to Disappear Completely|||Radiohead':        '4fzsfWzRhPawzqhX8Qt9F3',
+  'Karma Police|||Radiohead':                       '6lbCqFZMNrRXQaUI8bWzRw',
+  'Everything in Its Right Place|||Radiohead':      '40JlFBiRYBwX5KbR5LKJY4',
+  'Motion Picture Soundtrack|||Radiohead':          '2JRYD48Bz2vV6OPDrMrWZ4',
+  'Weird Fishes / Arpeggi|||Radiohead':             '4wajJ1o7jWIg62YqpkHC7S',
+  'Retrograde|||James Blake':                       '7oHHhHNPVdFLSYqVMvJwJA',
+  // Ingrid Michaelson
+  'You & I|||Ingrid Michaelson':                    '7aohwSiTDju51QmC54AUba',
+  // Nina Simone
+  'Be My Husband|||Nina Simone':                    '5ycEBvIJMzxmClIVXQ8MCC',
+  'Sinner Man|||Nina Simone':                       '0AYRVqmLzCUeGhnQ8fxYNS',
+  'Strange Fruit|||Billie Holiday':                 '7bPBvMFrBJkVHPZpf6VPsP',
+  // Sufjan Stevens
+  'Casimir Pulaski Day|||Sufjan Stevens':           '3MkR9V7NnJFY6zfk70qLmY',
+  'Death With Dignity|||Sufjan Stevens':            '6PCBVbRHZMj7aFmWPlWaFf',
+  'To Be Alone With You|||Sufjan Stevens':          '3xWCyH8hFQM9sFiLAJopHa',
+  // Iron & Wine, Fleet Foxes, Bahamas, Indigo Girls
+  'Naked as We Came|||Iron & Wine':                 '5JKOT9XlCMFECGKBzrQ5zN',
+  'Blue Ridge Mountains|||Fleet Foxes':             '0QiHvUiKiOBxO1jBwXQjUO',
+  'Dirt|||Bahamas':                                 '5p4zqBqDWAbqwRQVCR4Kp4',
+  'The Wood Song|||Indigo Girls':                   '59AYuVvnzNXzgmVGiMPLGG',
+  // Bright Eyes
+  'First Day of My Life|||Bright Eyes':             '6C9SRQ9VmxlnCXVmGIGuvp',
+  'Lua|||Bright Eyes':                              '0WJFaQHKMWMpMKmN2mzJKR',
+  // Postal Service, Bon Iver
+  'Such Great Heights|||The Postal Service':        '0TLJxwvUxGv5QZRXV0YMoE',
+  'Holocene|||Bon Iver':                            '4fbvXwMTXPWaFyaMWUm9CR',
+  'Skinny Love|||Bon Iver':                         '0zP8BJOamm7Q9aNMwCby55',
+  'Re: Stacks|||Bon Iver':                          '20AC70RUlVz6A6dCcQ5tRS',
+  'Woods|||Bon Iver':                               '2cx019HWgBsIrv3zLCdSHS',
+  // Woodkid, Run Boy Run
+  'Run Boy Run|||Woodkid':                          '1Yw1nxaMFHMULwbDZvJN2t',
+  // Florence + the Machine
+  'Dog Days Are Over|||Florence + the Machine':     '3SjCqXkMcT6YQUkuHQHR4v',
+  'Shake It Out|||Florence + the Machine':          '3EYAJ8Kq8RmXOmMZBl9Pmq',
+  // Lykke Li, Billie Eilish, Golden Hour
+  'Possibility|||Lykke Li':                         '6cJnmRFz7Rrjn8RYRpVyJF',
+  'Bad Guy|||Billie Eilish':                        '2Fxmhks0bxGSBdJ92vM42m',
+  'Golden Hour|||KACEY MUSGRAVES':                  '5ptAFfnfX1MRCJ89fZVZgZ',
+  'Good as Hell|||Lizzo':                           '3Yh9lZcVGDhNiKpZlNcftg',
+  'Dancing Queen|||ABBA':                           '0GjEhVFGZW8afUYGChu3Rr',
+  'September|||Earth, Wind & Fire':                 '2grjqo0Frpf2okIBiifM4t',
+  'Man in the Mirror|||Michael Jackson':            '5GVSSoLv5ZZH8MdEKnbMkW',
+  'Make You Feel My Love|||Adele':                  '4Fg5oXLxB4ClKJfEBEMBHi',
+  'Everybody Wants to Rule the World|||Tears for Fears': '4RvWPyQ5RL0ao9LPZeSouE',
+  'Here Comes the Sun|||The Beatles':               '6dGnYIeiqbubHBOO0HQTC2',
+  'Let It Be|||The Beatles':                        '7iN1s7xHE4ifF5povM6A48',
+  // Rock / heavy
+  "Baba O'Riley|||The Who":                         '0e5psX0RMbNt3cvgbKyKvQ',
+  'Mr. Brightside|||The Killers':                   '003vvx7Niy0yvhvHt4a14B',
+  'Power|||Kanye West':                             '2gZUPNdnz5Y45eiGxpHGSc',
+  'Heads Will Roll|||Yeah Yeah Yeahs':              '6TXFMgPCXHuOSBjReHuTGS',
+  'Immigrant Song|||Led Zeppelin':                  '78lgmZwycJ3nzsdgmPPGNx',
+  'Runaway|||Kanye West':                           '3TVXtAsR1Inumwj472S9r4',
+  'TYRANT|||Rosalía':                               '3Wo5QwkWs1lcClS7hW9Gou',
+  'Mother|||Pink Floyd':                            '7F02x6EKYIQV3VcTaTm7oN',
+  'Seven Nation Army|||The White Stripes':          '7oK9VyNzrYvRFo7nQEYkWN',
+  'Eye of the Tiger|||Survivor':                    '2HHtWyy5CgaQbC7XSoOb0e',
+  'Survival|||Eminem':                              '5mlFBqaUPKW5zf5xJhRoJy',
+  'No Church in the Wild|||Jay-Z & Kanye West':     '4SibCPEFxaJx7CQRKCfqaL',
+  'Dark Horse|||Katy Perry':                        '0C6S5TiZMHaYbMbNVhCLFe',
+  'Like a Stone|||Audioslave':                      '4OiGgZBMVSZmgJxIILGJGp',
+  // Nick Drake, Manchester Orchestra, Pink Moon
+  'Pink Moon|||Nick Drake':                         '0AeugRsGkFFuGBDWBHi48S',
+  'The Night Will Always Win|||Manchester Orchestra': '0L5bIIMgCbKVe2UMBmqO4Y',
+  // Bob Dylan, The Times
+  "The Times They Are A-Changin'|||Bob Dylan":      '52wuFMDnBXSrCkFAFxJrL4',
+  'Sprawl II|||Arcade Fire':                        '0U0p8weaMIbIFMJ0CPlvHV',
+  // Khruangbin
+  'A Calf Born in Winter|||Khruangbin':             '230tKtsKM3eigmK2CtssAO',
+  'Lady and Man|||Khruangbin':                      '1RcKa3TDe9zGeb33BwqYGU',
+  // Metronomy
+  'The Bay|||Metronomy':                            '0J74Kc6C4J8OcUvamgHkUK',
+  'Love Letters|||Metronomy':                       '6bW7mUdEV4jWxmdxcj8X3k',
+  // Natalia Lafourcade
+  'Hasta la Raíz|||Natalia Lafourcade':             '3lGMtkONrZdJ8kTCg6KIFf',
+  'En El 2000|||Natalia Lafourcade':                '71QAoBNB9Bqr7bT0iGqCM8',
+  'Amor, Amor, Amor|||Natalia Lafourcade':          '3dB42OEuVNiktvt3V5JRVI',
+  // Kitty Craft, Modest Mouse, La Femme, Dope Lemon
+  'Alright|||Kitty Craft':                          '63u93RlCA76w71nObCGLJD',
+  'Float On|||Modest Mouse':                        '2lwwrWVKdf3LR9lbbhnr6R',
+  'Pasadena|||La Femme':                            '2dALvck73iimdQBrGAuaNo',
+  'Marinade|||Dope Lemon':                          '6hEgxs180paMoUGrHQKarf',
+  // Jaguar Sun, Oracle Sisters, Arcade Fire, Andrew Bird
+  'Time|||Jaguar Sun':                              '3umisdhSpBKjgAansNLqo3',
+  'Asc. Scorpio|||Oracle Sisters':                  '2MnSPY2QYMbtkDWGzY02In',
+  'Wake Up|||Arcade Fire':                          '6Hmj7SrLRbreLVfVS7mV1S',
+  'Tenuousness|||Andrew Bird':                      '0OhfCAy6A2EVh4LaC55A1G',
+  'Pulaski at Night|||Andrew Bird':                 '4Gujw2rw5S0PUMvlIhydSG',
+  // Laura Marling, Road Trippin', River, etc.
+  'Exit Strategy of a Wrecking Ball|||Laura Marling': '5yCJOqQUfeWk1j1yKB1ZJZ',
+  'Road Trippin\'|||Red Hot Chili Peppers':          '3I1uqYZWFkpbvKBHRN0ycO',
+  'River|||Leon Bridges':                           '3yxgMoxgMgCNXZYHxqhAcl',
+  'Pure Imagination|||Gene Wilder':                 '37bv7sW7DUxknvLXrlveCJ',
+  'The End of the World|||Skeeter Davis':            '0qIbRCVqCKhM2QIl6rF6Ee',
+  'The Sound of Silence|||Simon & Garfunkel':       '1OinIbJELlMoMJ6Mqj7bAR',
+  'The Reckoning|||Need to Breathe':                '0RQxQZsMXqaqz6z0HBbRRp',
+  'The Becoming|||Nine Inch Nails':                 '0JWnMiRKi0vVEJZnMFDoYT',
+};
+
 function renderResult(p) {
   document.getElementById('loadingState').style.display = 'none';
 
@@ -2728,8 +2834,19 @@ function renderResult(p) {
   const pl = document.getElementById('playlist');
   pl.innerHTML = '';
   p.tracks.forEach(tr => {
+    const id = spotifyIds[`${tr.title}|||${tr.artist}`];
     const li = document.createElement('li');
-    li.innerHTML = `<span>${tr.title}</span><span class="track-artist">${tr.artist}</span>`;
+    li.style.cssText = 'border:none; padding:0.4rem 0;';
+    if (id) {
+      li.innerHTML = `<iframe
+        src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0"
+        width="100%" height="80" frameBorder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy" style="border-radius:8px; display:block;">
+      </iframe>`;
+    } else {
+      li.innerHTML = `<span>${tr.title}</span><span class="track-artist">${tr.artist}</span>`;
+    }
     pl.appendChild(li);
   });
 
