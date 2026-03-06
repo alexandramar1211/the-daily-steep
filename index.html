@@ -128,30 +128,117 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.6rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .mood-btn {
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.35);
-    color: #ffffff;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: rgba(255,255,255,0.75);
     padding: 1.1rem 0.75rem 0.9rem;
     font-family: 'DM Sans', sans-serif;
     font-weight: 400;
     font-size: 0.88rem;
     letter-spacing: 0.08em;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     text-align: center;
     backdrop-filter: blur(6px);
   }
 
-  .mood-btn:hover { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.28); }
-  .mood-btn.selected { border-color: #ffffff; background: rgba(255,255,255,0.35); color: #ffffff; font-weight: 500; }
-  .mood-btn .mood-icon { display: block; font-size: 1.3rem; margin-bottom: 0.45rem; opacity: 0.9; }
+  .mood-btn:hover { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.22); color: #fff; }
 
-  /* Intention step */
-  #step0 { animation: fadeUp 0.6s ease forwards; }
+  .mood-btn.selected {
+    border-color: #ffffff;
+    background: rgba(255,255,255,0.92);
+    color: #1a3a6e;
+    font-weight: 600;
+    transform: scale(1.04);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  .mood-btn.selected .mood-icon { opacity: 1; }
+  .mood-btn .mood-icon { display: block; font-size: 1.3rem; margin-bottom: 0.45rem; opacity: 0.8; }
+
+  /* Floating confirm — slides up after mood selected */
+  .mood-confirm-bar {
+    position: sticky;
+    bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  .mood-confirm-bar.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  .mood-confirm-bar .cta-btn {
+    margin: 0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  /* Progressive result panels */
+  .result-panel {
+    display: none;
+    animation: fadeUp 0.5s ease forwards;
+    margin-top: 1.5rem;
+  }
+
+  .result-panel.visible { display: block; }
+
+  .result-panel-continue {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.85);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.9rem 2.5rem;
+    display: block;
+    margin: 2rem auto 0;
+    transition: all 0.2s ease;
+  }
+
+  .result-panel-continue:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.8);
+    color: #fff;
+  }
+
+  /* Panel progress dots */
+  .result-progress {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .result-progress-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .result-progress-dot.active {
+    background: rgba(255,255,255,0.9);
+    transform: scale(1.3);
+  }
+
+  .result-progress-dot.done {
+    background: rgba(255,255,255,0.5);
+  }
 
   .intention-card {
     background: rgba(255,255,255,0.15);
@@ -780,7 +867,9 @@
     </button>
   </div>
   <div class="mood-grid" id="moodGrid"></div>
-  <button class="cta-btn" id="revealBtn1" onclick="onMoodConfirm()" disabled>This feels right</button>
+  <div class="mood-confirm-bar" id="moodConfirmBar">
+    <button class="cta-btn" id="revealBtn1" onclick="onMoodConfirm()">This feels right</button>
+  </div>
 </div>
 
 <!-- STEP 2: Follow-up -->
@@ -798,101 +887,110 @@
     <div class="result-inner">
       <span class="symbol" id="cardSymbol"></span>
 
-      <!-- Card flip -->
-      <div class="card-flip-wrap" id="cardFlipWrap" onclick="flipCard()">
-        <div class="card-flip-inner" id="cardFlipInner">
-          <div class="card-face card-back">
-            <div class="card-back-pattern"></div>
-            <span class="card-back-symbol" id="cardBackSymbol">✦</span>
-          </div>
-          <div class="card-face card-front" id="cardFront">
-            <!-- image or fallback injected by JS -->
+      <!-- Progress dots -->
+      <div class="result-progress" id="resultProgress">
+        <div class="result-progress-dot active" id="dot1"></div>
+        <div class="result-progress-dot" id="dot2"></div>
+        <div class="result-progress-dot" id="dot3"></div>
+        <div class="result-progress-dot" id="dot4"></div>
+      </div>
+
+      <!-- PANEL 1: Card -->
+      <div class="result-panel visible" id="panel1">
+        <div class="card-flip-wrap" id="cardFlipWrap" onclick="flipCard()">
+          <div class="card-flip-inner" id="cardFlipInner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern"></div>
+              <span class="card-back-symbol" id="cardBackSymbol">✦</span>
+            </div>
+            <div class="card-face card-front" id="cardFront"></div>
           </div>
         </div>
-      </div>
-      <p class="card-flip-tap-hint" id="cardFlipHint">tap to reveal</p>
-      <p class="card-number" id="cardNumber"></p>
-      <h2 class="card-name" id="cardName"></h2>
-      <p class="card-subtitle" id="cardSubtitle"></p>
-      <p class="card-suit" id="cardSuit"></p>
-
-      <div class="result-divider"></div>
-
-      <p class="result-section-label">Archetype</p>
-      <p class="archetype-text" id="archetypeText"></p>
-      <p class="body-text" id="cardBody"></p>
-
-      <div class="result-divider"></div>
-
-      <!-- TEA -->
-      <div class="tea-section-header">
-        <p class="result-section-label" style="margin-bottom:0">Your Tea</p>
-        <button class="shuffle-tea-btn" onclick="shuffleTea()">
-          <span class="shuffle-icon">⟳</span> another steep
-        </button>
+        <p class="card-flip-tap-hint" id="cardFlipHint">tap to reveal</p>
+        <p class="card-number" id="cardNumber"></p>
+        <h2 class="card-name" id="cardName"></h2>
+        <p class="card-subtitle" id="cardSubtitle"></p>
+        <p class="card-suit" id="cardSuit"></p>
+        <div class="result-divider"></div>
+        <p class="result-section-label" id="archetypeLabel">Archetype</p>
+        <p class="archetype-text" id="archetypeText"></p>
+        <p class="body-text" id="cardBody"></p>
+        <button class="result-panel-continue" onclick="showPanel(2)" id="continueBtn1"></button>
       </div>
 
-      <div class="tea-block" id="teaBlock">
-        <span class="tea-family-tag" id="teaFamily"></span>
-        <p class="tea-name" id="teaName"></p>
-        <p class="tea-note" id="teaNote"></p>
-
-        <button class="tea-expand-btn" onclick="toggleTeaDetail()" id="teaExpandBtn">
-          <span class="tea-expand-icon" id="teaExpandIcon">▾</span>
-          about this tea
-        </button>
-
-        <div class="tea-detail" id="teaDetail">
-          <div class="tea-detail-row">
-            <div class="tea-detail-item">
-              <p class="tea-detail-label">Origin</p>
-              <p class="tea-detail-value" id="teaOrigin"></p>
+      <!-- PANEL 2: Tea -->
+      <div class="result-panel" id="panel2">
+        <div class="result-divider"></div>
+        <div class="tea-section-header">
+          <p class="result-section-label" style="margin-bottom:0" id="teaLabel">Your Tea</p>
+          <button class="shuffle-tea-btn" onclick="shuffleTea()">
+            <span class="shuffle-icon">⟳</span> <span id="anotherSteepLabel">another steep</span>
+          </button>
+        </div>
+        <div class="tea-block" id="teaBlock">
+          <span class="tea-family-tag" id="teaFamily"></span>
+          <p class="tea-name" id="teaName"></p>
+          <p class="tea-note" id="teaNote"></p>
+          <button class="tea-expand-btn" onclick="toggleTeaDetail()" id="teaExpandBtn">
+            <span class="tea-expand-icon" id="teaExpandIcon">▾</span>
+            about this tea
+          </button>
+          <div class="tea-detail" id="teaDetail">
+            <div class="tea-detail-row">
+              <div class="tea-detail-item">
+                <p class="tea-detail-label">Origin</p>
+                <p class="tea-detail-value" id="teaOrigin"></p>
+              </div>
+              <div class="tea-detail-item">
+                <p class="tea-detail-label">Flavour</p>
+                <p class="tea-detail-value" id="teaFlavour"></p>
+              </div>
+              <div class="tea-detail-item">
+                <p class="tea-detail-label">Brew</p>
+                <p class="tea-detail-value" id="teaBrew"></p>
+              </div>
             </div>
-            <div class="tea-detail-item">
-              <p class="tea-detail-label">Flavour</p>
-              <p class="tea-detail-value" id="teaFlavour"></p>
-            </div>
-            <div class="tea-detail-item">
-              <p class="tea-detail-label">Brew</p>
-              <p class="tea-detail-value" id="teaBrew"></p>
+            <div class="tea-try-differently">
+              <p class="tea-try-label">Try it differently</p>
+              <p class="tea-try-text" id="teaTryDifferently"></p>
             </div>
           </div>
-          <div class="tea-try-differently">
-            <p class="tea-try-label">Try it differently</p>
-            <p class="tea-try-text" id="teaTryDifferently"></p>
+        </div>
+        <div class="cupboard-section">
+          <button class="cupboard-toggle-btn" onclick="toggleCupboard()">
+            <span>☕</span> <span id="cupboardToggleLabel">what's in your cupboard?</span>
+          </button>
+          <div class="cupboard-panel" id="cupboardPanel">
+            <p class="cupboard-intro" id="cupboardIntroText">Tell us what you have at home and we'll show you how your card's teas match what's in your cupboard.</p>
+            <div class="cupboard-grid" id="cupboardGrid"></div>
+            <button class="cupboard-save-btn" onclick="saveCupboard()" id="cupboardSaveBtn">Show my matches</button>
           </div>
+          <p class="cupboard-match-note" id="cupboardMatchNote"></p>
+        </div>
+        <button class="result-panel-continue" onclick="showPanel(3)" id="continueBtn2"></button>
+      </div>
+
+      <!-- PANEL 3: Playlist -->
+      <div class="result-panel" id="panel3">
+        <div class="result-divider"></div>
+        <p class="result-section-label" id="playlistLabel">Suggested Tracks</p>
+        <ul class="playlist-list" id="playlist"></ul>
+        <button class="result-panel-continue" onclick="showPanel(4)" id="continueBtn3"></button>
+      </div>
+
+      <!-- PANEL 4: Ritual + Intention -->
+      <div class="result-panel" id="panel4">
+        <div class="result-divider"></div>
+        <p class="result-section-label" id="ritualLabel">The Ritual</p>
+        <div class="ritual-box"><p id="ritualText"></p></div>
+        <div class="intention-carried" id="intentionCarried">
+          <span style="font-size:0.55rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--muted);font-style:normal;display:block;margin-bottom:0.3rem;" id="intentionCarriedLabel">Your intention</span>
+          <span id="intentionCarriedText"></span>
         </div>
       </div>
 
-      <!-- CUPBOARD -->
-      <div class="cupboard-section">
-        <button class="cupboard-toggle-btn" onclick="toggleCupboard()">
-          <span>☕</span> what's in your cupboard?
-        </button>
-        <div class="cupboard-panel" id="cupboardPanel">
-          <p class="cupboard-intro">Tell us what you have at home and we'll show you how your card's teas match what's in your cupboard.</p>
-          <div class="cupboard-grid" id="cupboardGrid"></div>
-          <button class="cupboard-save-btn" onclick="saveCupboard()">Show my matches</button>
-        </div>
-        <p class="cupboard-match-note" id="cupboardMatchNote"></p>
-      </div>
-
-      <div class="result-divider"></div>
-
-      <p class="result-section-label">Suggested Tracks</p>
-      <ul class="playlist-list" id="playlist"></ul>
-
-      <div class="result-divider"></div>
-
-      <p class="result-section-label">The Ritual</p>
-      <div class="ritual-box"><p id="ritualText"></p></div>
-
-      <div class="intention-carried" id="intentionCarried">
-        <span style="font-size:0.55rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--muted);font-style:normal;display:block;margin-bottom:0.3rem;">Your intention</span>
-        <span id="intentionCarriedText"></span>
-      </div>
     </div>
-    <button class="reset-btn" onclick="reset()">Begin a new reading</button>
+    <button class="reset-btn" onclick="reset()" id="resetBtn">Begin a new reading</button>
   </div>
 </div>
 
@@ -964,6 +1062,9 @@ const translations = {
     sectionRitual: 'The Ritual',
     intentionCarriedLabel: 'Your intention',
     beginAgain: 'Begin a new reading',
+    continueToTea: 'Continue to your tea',
+    continueToPlaylist: 'Continue to playlist',
+    continueToRitual: 'Continue to ritual',
     footer: 'The Daily Steep · ten minutes, just for you',
     cupboardNone: "None of your teas are a direct match today — but any warm cup you love will do beautifully.",
     cupboardOne: (name) => `You have ${name} at home — that's a lovely match for today's card.`,
@@ -998,6 +1099,9 @@ const translations = {
     sectionRitual: 'El ritual',
     intentionCarriedLabel: 'Tu intención',
     beginAgain: 'Comenzar una nueva lectura',
+    continueToTea: 'Continuar al té',
+    continueToPlaylist: 'Continuar a la playlist',
+    continueToRitual: 'Continuar al ritual',
     footer: 'The Daily Steep · diez minutos, solo para ti',
     cupboardNone: "Ninguno de tus tés es una coincidencia directa hoy — pero cualquier taza caliente que ames funcionará perfecto.",
     cupboardOne: (name) => `Tienes ${name} en casa — es una hermosa coincidencia para la carta de hoy.`,
@@ -1135,14 +1239,22 @@ function applyTranslations() {
   document.querySelector('.cupboard-save-btn').textContent = T.cupboardSave;
   document.querySelector('.reset-btn').textContent = T.beginAgain;
   document.querySelector('footer').textContent = T.footer;
-  // Section labels (only update if result is showing)
-  const labels = document.querySelectorAll('.result-section-label');
-  if (labels.length >= 4) {
-    labels[0].textContent = T.sectionArchetype;
-    labels[1].textContent = T.sectionTea;
-    labels[2].textContent = T.sectionTracks;
-    labels[3].textContent = T.sectionRitual;
-  }
+  // Continue buttons
+  const cb1 = document.getElementById('continueBtn1');
+  const cb2 = document.getElementById('continueBtn2');
+  const cb3 = document.getElementById('continueBtn3');
+  if (cb1) cb1.textContent = T.continueToTea;
+  if (cb2) cb2.textContent = T.continueToPlaylist;
+  if (cb3) cb3.textContent = T.continueToRitual;
+  // Section labels by ID
+  const arcLabel = document.getElementById('archetypeLabel');
+  const teaLbl   = document.getElementById('teaLabel');
+  const plLbl    = document.getElementById('playlistLabel');
+  const ritLbl   = document.getElementById('ritualLabel');
+  if (arcLabel) arcLabel.textContent = T.sectionArchetype;
+  if (teaLbl)   teaLbl.textContent   = T.sectionTea;
+  if (plLbl)    plLbl.textContent    = T.sectionTracks;
+  if (ritLbl)   ritLbl.textContent   = T.sectionRitual;
   // Shuffle tea / about tea buttons
   const shuffleTeaBtn = document.querySelector('.shuffle-tea-btn');
   if (shuffleTeaBtn) shuffleTeaBtn.innerHTML = `<span class="shuffle-icon">⟳</span> ${T.anotherSteep}`;
@@ -2363,7 +2475,7 @@ function selectMood(btn) {
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   selectedMood = btn.dataset.mood;
-  document.getElementById('revealBtn1').disabled = false;
+  document.getElementById('moodConfirmBar').classList.add('visible');
 }
 
 // Pick a random card from a pool of mood keys
@@ -2457,6 +2569,29 @@ function showResult() {
   setTimeout(() => renderResult(p), 1400);
 }
 
+function showPanel(n) {
+  // Show requested panel
+  document.getElementById(`panel${n}`).classList.add('visible');
+
+  // Update progress dots
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById(`dot${i}`);
+    if (i < n)       { dot.classList.remove('active'); dot.classList.add('done'); }
+    else if (i === n){ dot.classList.add('active'); dot.classList.remove('done'); }
+    else             { dot.classList.remove('active','done'); }
+  }
+
+  // Show reset button once all panels revealed
+  if (n === 4) {
+    document.getElementById('resetBtn').style.display = 'block';
+  }
+
+  // Scroll new panel into view gently
+  setTimeout(() => {
+    document.getElementById(`panel${n}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
+
 // ─────────────────────────────────────────────
 // CARD FLIP & IMAGE
 // ─────────────────────────────────────────────
@@ -2542,6 +2677,13 @@ function renderResult(p) {
   });
 
   document.getElementById('resultContent').style.display = 'block';
+
+  // Hide reset until panel 4, set continue button labels
+  document.getElementById('resetBtn').style.display = 'none';
+  const T = translations[currentLang];
+  document.getElementById('continueBtn1').textContent = T.continueToTea;
+  document.getElementById('continueBtn2').textContent = T.continueToPlaylist;
+  document.getElementById('continueBtn3').textContent = T.continueToRitual;
 }
 
 // ─────────────────────────────────────────────
@@ -2675,7 +2817,7 @@ function reset() {
   currentIntention = '';
 
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('revealBtn1').disabled = true;
+  document.getElementById('moodConfirmBar').classList.remove('visible');
 
   // Reset step0
   const s0 = document.getElementById('step0');
@@ -2701,6 +2843,16 @@ function reset() {
   document.getElementById('cupboardMatchNote').style.display = 'none';
   document.getElementById('cupboardPanel').classList.remove('visible');
   document.getElementById('intentionCarried').style.display = 'none';
+
+  // Reset panels
+  [2,3,4].forEach(n => document.getElementById(`panel${n}`).classList.remove('visible'));
+  document.getElementById('panel1').classList.add('visible');
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById(`dot${i}`);
+    dot.classList.remove('active','done');
+    if (i === 1) dot.classList.add('active');
+  }
+  document.getElementById('resetBtn').style.display = 'none';
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
