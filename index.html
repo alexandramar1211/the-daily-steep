@@ -23,7 +23,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: linear-gradient(135deg, #f5ede0 0%, #e8d5b8 40%, #d4b896 100%);
+    background: linear-gradient(135deg, #f0c020 0%, #e1ad01 40%, #c99500 100%);
     background-attachment: fixed;
     color: #2a1f14;
     font-family: 'DM Sans', sans-serif;
@@ -1038,7 +1038,7 @@ const moodGradients = {
   'grounded':      { bg: 'linear-gradient(135deg, #0a150a 0%, #1a3020 40%, #224530 100%)', accent: 'rgba(70,200,100,0.55)', accentLow: 'rgba(20,100,45,0.4)' },
   'searching':     { bg: 'linear-gradient(135deg, #0c1020 0%, #172040 40%, #1c3060 100%)', accent: 'rgba(80,130,230,0.6)',  accentLow: 'rgba(20,55,160,0.4)' },
   'in-between':    { bg: 'linear-gradient(135deg, #160f20 0%, #281e3a 40%, #342850 100%)', accent: 'rgba(150,100,210,0.6)', accentLow: 'rgba(70,40,130,0.4)' },
-  default:         { bg: 'linear-gradient(135deg, #f5ede0 0%, #e8d5b8 40%, #d4b896 100%)', accent: 'rgba(180,140,90,0.35)',  accentLow: 'rgba(140,100,60,0.25)' },
+  default:         { bg: 'linear-gradient(135deg, #f0c020 0%, #e1ad01 40%, #c99500 100%)', accent: 'rgba(180,130,0,0.45)',  accentLow: 'rgba(140,95,0,0.35)' },
 };
 
 function applyMoodGradient(mood) {
@@ -1058,8 +1058,18 @@ function applyMoodGradient(mood) {
   document.documentElement.style.setProperty('--accent',     isLight ? '#8b6340' : '#38bdf8');
 }
 
-// Start with calm default
-applyMoodGradient('default');
+// Curated landing gradients — picked for beauty at first impression
+const landingGradients = [
+  'fated',       // deep violet-indigo
+  'electric',    // near-black purple
+  'reckoning',   // dark violet
+  'tender',      // warm plum-rose
+  'flowing',     // deep teal
+  'grounded',    // forest deep green
+  'fierce',      // deep crimson
+];
+const randomLanding = landingGradients[Math.floor(Math.random() * landingGradients.length)];
+applyMoodGradient(randomLanding);
 
 // ─────────────────────────────────────────────
 // LANGUAGE SYSTEM
@@ -2888,7 +2898,7 @@ function reset() {
     if (i === 1) dot.classList.add('active');
   }
   document.getElementById('resetBtn').style.display = 'none';
-  applyMoodGradient('default');
+  applyMoodGradient(landingGradients[Math.floor(Math.random() * landingGradients.length)]);
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
