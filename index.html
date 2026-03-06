@@ -26,7 +26,36 @@
     font-weight: 300;
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 2s ease;
   }
+
+  /* Language toggle */
+  .lang-toggle {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.5rem;
+    z-index: 100;
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .lang-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.7);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    padding: 0.3rem 0.65rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(6px);
+    text-transform: uppercase;
+  }
+
+  .lang-btn:hover { background: rgba(255,255,255,0.25); color: #ffffff; }
+  .lang-btn.active { background: rgba(255,255,255,0.3); color: #ffffff; border-color: rgba(255,255,255,0.7); }
 
   body::before {
     content: '';
@@ -601,6 +630,11 @@
 </head>
 <body>
 
+<div class="lang-toggle">
+  <button class="lang-btn active" onclick="setLang('en')" id="btnEN">EN</button>
+  <button class="lang-btn" onclick="setLang('es')" id="btnES">ES</button>
+</div>
+
 <header>
   <p class="title-eyebrow">Ten minutes, just for you</p>
   <h1>The Daily <em>Steep</em></h1>
@@ -734,6 +768,291 @@
 
 <script>
 // ─────────────────────────────────────────────
+// TIME-BASED GRADIENT
+// ─────────────────────────────────────────────
+const timeGradients = {
+  // 5am–10am: warm golden morning
+  morning:   'linear-gradient(135deg, #f9a825 0%, #fb8c00 30%, #e65100 65%, #bf360c 100%)',
+  // 10am–5pm: clear blue afternoon
+  afternoon: 'linear-gradient(135deg, #60c8f5 0%, #2196f3 30%, #1565c0 65%, #0d2a7a 100%)',
+  // 5pm–8pm: golden hour peach-rose
+  evening:   'linear-gradient(135deg, #ffb347 0%, #e91e8c 40%, #9c27b0 75%, #4a148c 100%)',
+  // 8pm–5am: deep indigo night
+  night:     'linear-gradient(135deg, #4a148c 0%, #311b92 35%, #1a237e 65%, #0a0a2e 100%)'
+};
+
+function getTimeOfDay() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 10) return 'morning';
+  if (h >= 10 && h < 17) return 'afternoon';
+  if (h >= 17 && h < 20) return 'evening';
+  return 'night';
+}
+
+function applyTimeGradient() {
+  document.body.style.background = timeGradients[getTimeOfDay()];
+}
+
+applyTimeGradient();
+// Recheck every 10 minutes in case page stays open
+setInterval(applyTimeGradient, 10 * 60 * 1000);
+
+// ─────────────────────────────────────────────
+// LANGUAGE SYSTEM
+// ─────────────────────────────────────────────
+let currentLang = 'en';
+
+const translations = {
+  en: {
+    eyebrow: 'Ten minutes, just for you',
+    subtitle: 'music · tarot · tea',
+    step0label: 'Before you begin',
+    intentionNote: 'Sit with this. No answer needed.',
+    intentionReady: "I'm ready",
+    step1label: 'Take a breath. Begin when you\'re ready.',
+    moodPrompt: 'How are you feeling right now?',
+    shuffleBtn: 'shuffle',
+    thisFeelsRight: 'This feels right',
+    step2label: 'Just one more question, gently.',
+    revealCard: 'Reveal my card',
+    loading: 'Steeping your reading',
+    sectionArchetype: 'Archetype',
+    sectionTea: 'Your Tea',
+    anotherSteep: 'another steep',
+    aboutTea: 'about this tea',
+    originLabel: 'Origin',
+    flavourLabel: 'Flavour',
+    brewLabel: 'Brew',
+    tryLabel: 'Try it differently',
+    cupboardBtn: "what's in your cupboard?",
+    cupboardIntro: "Tell us what you have at home and we'll show you how your card's teas match what's in your cupboard.",
+    cupboardSave: 'Show my matches',
+    sectionTracks: 'Suggested Tracks',
+    sectionRitual: 'The Ritual',
+    intentionCarriedLabel: 'Your intention',
+    beginAgain: 'Begin a new reading',
+    footer: 'The Daily Steep · ten minutes, just for you',
+    cupboardNone: "None of your teas are a direct match today — but any warm cup you love will do beautifully.",
+    cupboardOne: (name) => `You have ${name} at home — that's a lovely match for today's card.`,
+    cupboardMany: (names) => `You have a few good matches in your cupboard: ${names}. Any of them would be wonderful today.`,
+  },
+  es: {
+    eyebrow: 'Diez minutos, solo para ti',
+    subtitle: 'música · tarot · té',
+    step0label: 'Antes de comenzar',
+    intentionNote: 'Quédate con esto. No necesitas responder.',
+    intentionReady: 'Estoy lista',
+    step1label: 'Respira profundo. Comienza cuando estés lista.',
+    moodPrompt: '¿Cómo te sientes ahora mismo?',
+    shuffleBtn: 'mezclar',
+    thisFeelsRight: 'Así me siento',
+    step2label: 'Una pregunta más, con calma.',
+    revealCard: 'Revelar mi carta',
+    loading: 'Preparando tu lectura',
+    sectionArchetype: 'Arquetipo',
+    sectionTea: 'Tu té',
+    anotherSteep: 'otro té',
+    aboutTea: 'sobre este té',
+    originLabel: 'Origen',
+    flavourLabel: 'Sabor',
+    brewLabel: 'Preparación',
+    tryLabel: 'Pruébalo diferente',
+    cupboardBtn: '¿qué tienes en tu alacena?',
+    cupboardIntro: 'Dinos qué tés tienes en casa y te mostraremos cuáles coinciden con la carta de hoy.',
+    cupboardSave: 'Ver mis coincidencias',
+    sectionTracks: 'Canciones sugeridas',
+    sectionRitual: 'El ritual',
+    intentionCarriedLabel: 'Tu intención',
+    beginAgain: 'Comenzar una nueva lectura',
+    footer: 'The Daily Steep · diez minutos, solo para ti',
+    cupboardNone: "Ninguno de tus tés es una coincidencia directa hoy — pero cualquier taza caliente que ames funcionará perfecto.",
+    cupboardOne: (name) => `Tienes ${name} en casa — es una hermosa coincidencia para la carta de hoy.`,
+    cupboardMany: (names) => `Tienes buenas coincidencias en tu alacena: ${names}. Cualquiera de ellos sería maravilloso hoy.`,
+  }
+};
+
+// Spanish mood labels
+const moodLabelsES = {
+  'introspective': 'introspectiva',
+  'melancholic':   'melancólica',
+  'expansive':     'expansiva',
+  'grounded':      'centrada',
+  'electric':      'eléctrica',
+  'tender':        'ternura',
+  'searching':     'buscando',
+  'fierce':        'intensa',
+  'in-between':    'entre mundos',
+  'joyful':        'alegre',
+  'solemn':        'solemne',
+  'playful':       'juguetona',
+  'reckoning':     'reflexiva',
+  'suspended':     'suspendida',
+  'fated':         'destinada',
+  'shadowed':      'sombría',
+  'flowing':       'fluyendo',
+  'awakening':     'despertando'
+};
+
+// Spanish arcana data
+const arcanaES = {
+  fool:          { name: 'El Loco',          subtitle: 'El luminoso comienzo',          archetype: 'Da un paso al vacío con una flor en la mano y sin mapa. Su perro salta con él. Esto no es imprudencia. Es fe.', body: 'El Loco es la carta de los comienzos puros — antes de que la experiencia se acumule, antes de que el camino se haga cómodo. Tu música está en ese lugar abierto, sin saber todavía. Maravilloso.' },
+  magician:      { name: 'El Mago',          subtitle: 'La voluntad hecha realidad',    archetype: 'Todos los elementos sobre la mesa, una mano al cielo, una a la tierra. El poder fluyendo limpio por un canal claro.', body: 'El Mago es pura agencia — el momento antes de crear cuando toda posibilidad sigue viva. Tu música está en alto voltaje ahora mismo. Úsalo.' },
+  highpriestess: { name: 'La Suma Sacerdotisa', subtitle: 'Guardiana del conocimiento oculto', archetype: 'Se sienta entre los pilares — sin moverse hacia ningún lado. No ofrece respuestas, solo el espacio para encontrar las tuyas.', body: 'Esta carta habla de la vida interior. La música que te lleva hacia adentro ahora lo hace por una razón. Confía en el silencio entre las notas.' },
+  empress:       { name: 'La Emperatriz',    subtitle: 'Abundancia sin disculpas',      archetype: 'Es el campo en plena flor. No justifica su riqueza. Simplemente es.', body: 'La Emperatriz es sensorial, plena, desbordante. Tu música ahora es exuberante — quiere sentirse, no analizarse. Déjala llenar la habitación.' },
+  emperor:       { name: 'El Emperador',     subtitle: 'El peso de la estructura',      archetype: 'El trono es de piedra. Las montañas no se mueven. Hay un costo en mantener el orden — y él lo paga.', body: 'La solemnidad no es tristeza — es tomarse en serio lo que importa. Tu música carga esa gravedad. Hay algo aquí que merece tu atención plena.' },
+  hierophant:    { name: 'El Hierofante',    subtitle: 'Raíz y tradición',              archetype: 'La sabiduría transmitida a través de las manos, la tierra, el acto cotidiano de volver.', body: 'Esta carta honra lo que se ha construido con el tiempo. Tu música tiene raíces — busca algo sólido, algo probado. Eso no es conservadurismo; es fe en la continuidad.' },
+  lovers:        { name: 'Los Amantes',      subtitle: 'El encuentro vulnerable',       archetype: 'No solo romance — sino el momento de elegir a otro, y al hacerlo, elegirte a ti misma.', body: 'Esta carta vive en los lugares más expuestos del corazón. Tu música está enfocada suavemente ahora, orientada hacia algo o alguien. Deja que la ternura sea real.' },
+  chariot:       { name: 'El Carro',         subtitle: 'Voluntad dirigida, movimiento hacia adelante', archetype: 'Dos fuerzas opuestas enlazadas — no suprimidas, sino apuntadas. No elimina la contradicción. Avanza a través de ella.', body: 'El Carro es movimiento con propósito. Tu música tiene dirección ahora — hay impulso en ella, aunque no puedas nombrar el destino. Confía en ese avance.' },
+  strength:      { name: 'La Fuerza',        subtitle: 'Poder sin fuerza',              archetype: 'Abre la boca del león con las manos desnudas — no por dominación, sino por un amor demasiado constante para ser rechazado.', body: 'La verdadera fuerza en esta carta es radicalmente gentil. Tu música es intensa pero no frágil. Hay un núcleo en ella que no necesita probarse.' },
+  hermit:        { name: 'El Ermitaño',      subtitle: 'Linterna solitaria',            archetype: 'Subió la montaña no para escapar, sino para ver con claridad. La linterna es para otros, eventualmente. Por ahora ilumina solo el siguiente paso.', body: 'El Ermitaño elige la soledad deliberadamente — no es aislamiento, es refinamiento. Tu música es una forma de volverse hacia adentro, una reducción cuidadosa. Quédate con ello.' },
+  wheeloffortune:{ name: 'La Rueda de la Fortuna', subtitle: 'Rendirse al giro',       archetype: 'La rueda no pide permiso. La esfinge arriba, la serpiente bajando, Anubis en camino de regreso. El ciclo no le importa quién eres.', body: 'Tu música está tocando algo más grande que el momento — un sentido del tiempo, de los ciclos, de las cosas que regresan. La Rueda no es sobre el control. Es sobre saber cuándo soltar.' },
+  justice:       { name: 'La Justicia',      subtitle: 'Claridad y consecuencia',       archetype: 'Las balanzas no mienten. Ella no castiga — simplemente revela lo que siempre fue verdad.', body: 'La justicia no es castigo; es precisión. Tu música ahora tiene una calidad de ojos abiertos — está nombrando cosas. Algo está siendo sopesado, y ya sabes la respuesta.' },
+  hangedman:     { name: 'El Colgado',       subtitle: 'Suspensión voluntaria',         archetype: 'Él eligió esto. El halo lo dice. Renunció a algo para ver diferente — y el mundo, invertido, tiene un sentido extraño y nuevo.', body: 'El Colgado no está atascado — está esperando a propósito. Tu música tiene esa calidad de pausa, de algo contenido. Esto no es estancamiento. Es quietud estratégica.' },
+  death:         { name: 'La Muerte',        subtitle: 'El fin necesario',              archetype: 'No es un final, sino un cruce. Algo se está liberando — y eso tiene su propia gracia.', body: 'La Muerte en el Tarot nunca es solo pérdida. Es la carta de la transformación, de lo que debe soltarse para que algo verdadero emerja. Tu música ya lo sabe.' },
+  temperance:    { name: 'La Templanza',     subtitle: 'Alquimia paciente',             archetype: 'Vierte entre dos copas — agua en fuego, fuego en agua — y ninguno es destruido. Esto es integración, no compromiso.', body: 'La Templanza es la carta de la mezcla larga — cosas siendo llevadas lentamente a la armonía. Tu música tiene esa calidad: elementos diferentes que no deberían funcionar juntos, y sin embargo.' },
+  devil:         { name: 'El Diablo',        subtitle: 'La trampa hermosa',             archetype: 'Las cadenas alrededor de sus cuellos son suficientemente flojas para quitarlas. Se quedan por elección. El Diablo no te retiene — tu propio deseo lo hace.', body: 'Esta carta no avergüenza. Atestigua. Tu música está circulando algo seductor y complejo — un bucle, un patrón, algo a lo que sigues volviendo.' },
+  star:          { name: 'La Estrella',      subtitle: 'Esperanza al borde del agua',   archetype: 'Vierte sin fin en agua y tierra — dando sin agotarse, confiando en la renovación.', body: 'La Estrella llega después de la ruina. Es la carta de la navegación guiada, de seguir la luz tenue que no se ha apagado. Tu música está buscando algo. Lo encontrará.' },
+  moon:          { name: 'La Luna',          subtitle: 'El cruce incierto',             archetype: 'El camino avanza con luz tenue. Los perros aúllan. El agua refleja algo que no es exactamente el cielo.', body: 'La Luna gobierna todo lo que está en medio: el umbral, el sueño, lo no resuelto. Tu música vive en ese espacio ahora — medio familiar, ligeramente extraño. Ese es el territorio correcto.' },
+  sun:           { name: 'El Sol',           subtitle: 'El devenir radiante',           archetype: 'Alegría sin complicaciones. La cosa más rara — un momento que no pide nada a cambio.', body: 'El Sol es la carta de la presencia plena, de salir al abierto. Tu lista de reproducción ahora mismo suena a algo que se abre. Déjalo.' },
+  judgement:     { name: 'El Juicio',        subtitle: 'Elevarse después del largo silencio', archetype: 'El ángel toca la trompeta y los resucitados no se ven asustados. Se ven aliviados. Habían estado esperando permiso para regresar.', body: 'El Juicio no es veredicto — es despertar. Algo en ti está elevándose que había sido enterrado. Tu música se siente así: algo que regresa desde lejos. Déjalo ser bienvenido.' },
+  world:         { name: 'El Mundo',         subtitle: 'El círculo completado',         archetype: 'Baila en la corona de laurel. Ha estado en los cuatro rincones y ha regresado. Está bailando.', body: 'El Mundo es plenitud, llegada, la satisfacción de la presencia total. Tu música está celebrando algo — aunque no puedas nombrarlo. Déjalo.' }
+};
+
+// Spanish intention questions
+const intentionQuestionsES = [
+  '¿Cómo se sentiría ser gentil contigo misma hoy?',
+  '¿Hay algo que has estado cargando que podrías dejar ir, solo por estos diez minutos?',
+  '¿Cómo se ve el descanso para ti ahora mismo — no el sueño, sino el descanso real?',
+  '¿Hay un sentimiento que has estado evitando que quizás solo necesita un momento de tu atención?',
+  '¿Qué le dirías a una querida amiga que se sintiera exactamente como tú te sientes hoy?',
+  '¿Qué necesita tu cuerpo que tu mente sigue ignorando?',
+  'Si este momento no te pidiera nada, ¿qué harías con él?',
+  '¿Hay alguien — incluyéndote a ti misma — a quien podrías ofrecerle un poco más de paciencia hoy?',
+  '¿Qué pequeña cosa ha estado trayéndote alegría en silencio que no has reconocido completamente?',
+  '¿Qué significaría confiar un poco más en ti misma hoy?',
+  '¿Hay una preocupación que podrías sostener más suavemente, solo por ahora?',
+  '¿Cómo se siente cuando estás verdadera y silenciosamente en paz?',
+  '¿Qué parte de ti pide ser vista hoy?',
+  'Si te permitieras querer lo que realmente quieres, ¿qué sería eso?',
+  '¿Cómo se vería hoy si te movieras a tu propio ritmo?',
+  '¿Hay algo hermoso a tu alrededor ahora mismo que no te has permitido notar?',
+  '¿Qué harías diferente si supieras que tienes permiso?',
+  '¿Quién quieres ser en los momentos en que nadie te observa?',
+  '¿En medio de qué te encuentras?',
+  '¿Cómo se sentiría dejar de explicarte, solo por hoy?'
+];
+
+// Spanish branch questions
+const branchQuestionsES = {
+  introspective: {
+    question: 'Hay algo silenciosamente hermoso en volverse hacia adentro. ¿Cómo se siente eso para ti ahora mismo?',
+    options: [
+      { label: 'En paz. No busco nada en particular — solo quiero estar quieta por un momento.', card: 'hermit' },
+      { label: 'Abierta. Hay algo que se mueve debajo de la superficie que aún no encuentro en palabras.', card: 'highpriestess' }
+    ]
+  },
+  melancholic: {
+    question: 'Está bien sentarse con la pesadez. ¿Puedes contarme un poco más sobre cómo se siente?',
+    options: [
+      { label: 'Como si algo se estuviera completando. Una liberación gentil — agridulce, pero correcta.', card: 'death' },
+      { label: 'Como si estuviera entre capítulos. No del todo lo viejo, ni todavía lo nuevo.', card: 'hangedman' }
+    ]
+  },
+  expansive: {
+    question: 'Esa apertura es un regalo. ¿Qué te está llenando ahora mismo?',
+    options: [
+      { label: 'Alegría simple. La clase sin complicaciones que no necesita razón.', card: 'sun' },
+      { label: 'Una riqueza silenciosa — como si algo estuviera desbordando y quiero dejarlo fluir.', card: 'empress' }
+    ]
+  },
+  grounded: {
+    question: 'Ese sentimiento de estar centrada vale la pena honrar. ¿De dónde sientes que viene?',
+    options: [
+      { label: 'De algo más antiguo que yo — raíces, linaje, el consuelo de lo heredado.', card: 'hierophant' },
+      { label: 'De mí misma. Una estabilidad que he trabajado, que ahora me pertenece.', card: 'chariot' }
+    ]
+  },
+  searching: {
+    question: 'Buscar tiene su propia valentía. ¿Cómo se siente la tuya hoy?',
+    options: [
+      { label: 'Con esperanza. Algo difícil quedó atrás, y hay una pequeña luz hacia la que me muevo.', card: 'star' },
+      { label: 'Tierna e incierta. Prefiero sentarme con la pregunta que apresurarme hacia una respuesta.', card: 'highpriestess' }
+    ]
+  },
+  joyful: {
+    question: 'Qué hermoso. ¿Qué tipo de alegría es esta?',
+    options: [
+      { label: 'La que se siente como llegada — plena y completa, como si me la hubiera ganado.', card: 'world' },
+      { label: 'La que se siente como una puerta que se abre — brillante, fresca, llena de lo que viene.', card: 'sun' }
+    ]
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+  document.getElementById('btnES').classList.toggle('active', lang === 'es');
+  applyTranslations();
+  // Rebuild mood grid with new labels
+  buildMoodGrid(false);
+  // Re-init intention question
+  initIntention();
+}
+
+function t(key, ...args) {
+  const val = translations[currentLang][key];
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+function applyTranslations() {
+  const T = translations[currentLang];
+  // Header
+  document.querySelector('.title-eyebrow').textContent = T.eyebrow;
+  document.querySelector('.subtitle').textContent = T.subtitle;
+  // Steps
+  document.querySelector('#step0 .step-label').textContent = T.step0label;
+  document.querySelector('#step0 .intention-note').textContent = T.intentionNote;
+  document.querySelector('#step0 .cta-btn').textContent = T.intentionReady;
+  document.querySelector('#step1 .step-label').textContent = T.step1label;
+  document.querySelector('#step1 .mood-prompt').textContent = T.moodPrompt;
+  document.querySelector('.shuffle-moods-btn').innerHTML = `<span class="shuffle-icon" id="moodShuffleIcon">⟳</span> ${T.shuffleBtn}`;
+  document.getElementById('revealBtn1').textContent = T.thisFeelsRight;
+  document.querySelector('#step2 .step-label').textContent = T.step2label;
+  document.getElementById('revealBtn2').textContent = T.revealCard;
+  // Result UI labels
+  document.getElementById('loadingState').textContent = T.loading;
+  document.querySelector('.cupboard-toggle-btn').innerHTML = `<span>☕</span> ${T.cupboardBtn}`;
+  document.querySelector('.cupboard-intro').textContent = T.cupboardIntro;
+  document.querySelector('.cupboard-save-btn').textContent = T.cupboardSave;
+  document.querySelector('.reset-btn').textContent = T.beginAgain;
+  document.querySelector('footer').textContent = T.footer;
+  // Section labels (only update if result is showing)
+  const labels = document.querySelectorAll('.result-section-label');
+  if (labels.length >= 4) {
+    labels[0].textContent = T.sectionArchetype;
+    labels[1].textContent = T.sectionTea;
+    labels[2].textContent = T.sectionTracks;
+    labels[3].textContent = T.sectionRitual;
+  }
+  // Shuffle tea / about tea buttons
+  const shuffleTeaBtn = document.querySelector('.shuffle-tea-btn');
+  if (shuffleTeaBtn) shuffleTeaBtn.innerHTML = `<span class="shuffle-icon">⟳</span> ${T.anotherSteep}`;
+  const expandBtn = document.getElementById('teaExpandBtn');
+  if (expandBtn) expandBtn.innerHTML = `<span class="tea-expand-icon" id="teaExpandIcon">▾</span> ${T.aboutTea}`;
+  // Tea detail labels
+  const detailLabels = document.querySelectorAll('.tea-detail-label');
+  if (detailLabels.length >= 3) {
+    detailLabels[0].textContent = T.originLabel;
+    detailLabels[1].textContent = T.flavourLabel;
+    detailLabels[2].textContent = T.brewLabel;
+  }
+  document.querySelector('.tea-try-label').textContent = T.tryLabel;
+  // Intention carried label
+  const icLabel = document.querySelector('#intentionCarried span');
+  if (icLabel) icLabel.textContent = T.intentionCarriedLabel;
+}
+
+// ─────────────────────────────────────────────
 // TEA LIBRARY
 // ─────────────────────────────────────────────
 const teaLibrary = {
@@ -807,7 +1126,7 @@ const teaLibrary = {
     brew: '90°C · 1–2 min',
     note: 'It tastes like letting go. The roasting removes the grassy edge and leaves only warmth.',
     tryDifferently: 'Stunning as a latte with oat milk and a pinch of cinnamon. Sweetened with honey it becomes a bedtime ritual. A hojicha cold brew over ice is one of summer\'s quiet pleasures.',
-    moods: ['melancholic','suspended','grounded','solemn','liminal']
+    moods: ['melancholic','suspended','grounded','solemn','in-between']
   },
   oolong: {
     id: 'oolong',
@@ -819,7 +1138,7 @@ const teaLibrary = {
     brew: '85–95°C · 1–3 min, multiple infusions',
     note: 'Neither fully one thing nor another — a tea of beautiful in-between states.',
     tryDifferently: 'The second and third infusions are often better than the first — let it open. A lighter oolong with a touch of honey becomes floral and yielding. Milk oolong (Jin Xuan) is naturally creamy without adding anything at all.',
-    moods: ['liminal','flowing','searching','fated','introspective']
+    moods: ['in-between','flowing','searching','fated','introspective']
   },
   morningblend: {
     id: 'morningblend',
@@ -879,7 +1198,7 @@ const teaLibrary = {
     brew: '95°C · 5 min',
     note: 'The tea that gives you permission to slow down. It does not rush. Neither should you.',
     tryDifferently: 'A spoon of honey makes it feel like a remedy. With warm oat milk it becomes almost dessert — soft and soporific in the best way. A slice of fresh ginger in the cup adds warmth and a little brightness without disturbing the calm.',
-    moods: ['introspective','suspended','melancholic','tender','liminal']
+    moods: ['introspective','suspended','melancholic','tender','in-between']
   },
   othertisane: {
     id: 'othertisane',
@@ -1193,7 +1512,7 @@ const allMoods = [
   { mood: 'tender',        icon: '🌸' },
   { mood: 'searching',     icon: '🔭' },
   { mood: 'fierce',        icon: '🔥' },
-  { mood: 'liminal',       icon: '🌫' },
+  { mood: 'in-between',       icon: '🌫' },
   { mood: 'joyful',        icon: '✨' },
   { mood: 'solemn',        icon: '🕯' },
   { mood: 'playful',       icon: '🎈' },
@@ -1223,7 +1542,8 @@ function buildMoodGrid(preserveSelected) {
     btn.className = 'mood-btn' + (preserveSelected && selectedMood === mood ? ' selected' : '');
     btn.dataset.mood = mood;
     btn.onclick = () => selectMood(btn);
-    btn.innerHTML = `<span class="mood-icon">${icon}</span>${mood}`;
+    const label = currentLang === 'es' ? (moodLabelsES[mood] || mood) : mood;
+    btn.innerHTML = `<span class="mood-icon">${icon}</span>${label}`;
     grid.appendChild(btn);
   });
 }
@@ -1266,7 +1586,7 @@ const moodRoutes = {
   electric:    { type: 'direct', card: 'magician' },
   tender:      { type: 'direct', card: 'lovers' },
   fierce:      { type: 'direct', card: 'strength' },
-  liminal:     { type: 'direct', card: 'moon' },
+  'in-between': { type: 'direct', card: 'moon' },
   solemn:      { type: 'direct', card: 'emperor' },
   playful:     { type: 'direct', card: 'fool' },
   reckoning:   { type: 'direct', card: 'justice' },
@@ -1340,7 +1660,8 @@ let currentIntention = '';
 // STEP 0: Intention
 // ─────────────────────────────────────────────
 function initIntention() {
-  const q = intentionQuestions[Math.floor(Math.random() * intentionQuestions.length)];
+  const pool = currentLang === 'es' ? intentionQuestionsES : intentionQuestions;
+  const q = pool[Math.floor(Math.random() * pool.length)];
   currentIntention = q;
   document.getElementById('intentionQuestion').textContent = q;
 }
@@ -1381,7 +1702,8 @@ function onMoodConfirm() {
 // ─────────────────────────────────────────────
 // STEP 2
 // ─────────────────────────────────────────────
-function showFollowup(route) {
+function showFollowup(routeEN) {
+  const route = (currentLang === 'es' && branchQuestionsES[selectedMood]) ? branchQuestionsES[selectedMood] : routeEN;
   document.getElementById('step1').style.opacity = '0.3';
   document.getElementById('step1').style.pointerEvents = 'none';
   document.getElementById('followupQuestion').textContent = route.question;
@@ -1431,13 +1753,20 @@ function showResult() {
 
 function renderResult(p) {
   document.getElementById('loadingState').style.display = 'none';
+
+  // Overlay Spanish translations if needed
+  const es = (currentLang === 'es' && arcanaES[selectedCard]) ? arcanaES[selectedCard] : null;
+
   document.getElementById('cardSymbol').textContent = p.symbol;
   document.getElementById('cardNumber').textContent = p.number;
-  document.getElementById('cardName').textContent = p.name;
-  document.getElementById('cardSubtitle').textContent = p.subtitle;
-  document.getElementById('archetypeText').textContent = p.archetype;
-  document.getElementById('cardBody').textContent = p.body;
-  document.getElementById('ritualText').textContent = p.ritual;
+  document.getElementById('cardName').textContent = es ? es.name : p.name;
+  document.getElementById('cardSubtitle').textContent = es ? es.subtitle : p.subtitle;
+  document.getElementById('archetypeText').textContent = es ? es.archetype : p.archetype;
+  document.getElementById('cardBody').textContent = es ? es.body : p.body;
+  document.getElementById('ritualText').textContent = p.ritual; // ritual stays EN (poetic, intentional)
+
+  // Apply UI translations
+  applyTranslations();
 
   // Show intention carried forward
   if (currentIntention) {
@@ -1450,9 +1779,9 @@ function renderResult(p) {
 
   const pl = document.getElementById('playlist');
   pl.innerHTML = '';
-  p.tracks.forEach(t => {
+  p.tracks.forEach(tr => {
     const li = document.createElement('li');
-    li.innerHTML = `<span>${t.title}</span><span class="track-artist">${t.artist}</span>`;
+    li.innerHTML = `<span>${tr.title}</span><span class="track-artist">${tr.artist}</span>`;
     pl.appendChild(li);
   });
 
@@ -1552,12 +1881,12 @@ function updateCupboardMatchNote(p) {
   const matches = cardTeas.filter(t => cupboardTeas.has(t.id));
 
   if (matches.length === 0) {
-    note.textContent = "None of your teas are a direct match today — but any warm cup you love will do beautifully.";
+    note.textContent = t('cupboardNone');
   } else if (matches.length === 1) {
-    note.textContent = `You have ${matches[0].name} at home — that's a lovely match for today's card.`;
+    note.textContent = t('cupboardOne', matches[0].name);
   } else {
-    const names = matches.map(t => t.name).join(' or ');
-    note.textContent = `You have a few good matches in your cupboard: ${names}. Any of them would be wonderful today.`;
+    const names = matches.map(t => t.name).join(currentLang === 'es' ? ' o ' : ' or ');
+    note.textContent = t('cupboardMany', names);
   }
   note.style.display = 'block';
 }
