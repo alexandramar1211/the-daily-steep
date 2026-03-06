@@ -4,24 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Daily Steep</title>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=DM+Sans:ital,wght@0,200;0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Serif:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,wght@0,200;0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #071428;
+    --ink: #ffffff;
     --parchment: #e8f4ff;
-    --warm: #38a8f5;
-    --muted: #5b89b8;
-    --pale: #c8e4f8;
-    --accent: #0066cc;
-    --fog: #a8d0ee;
+    --warm: #7dd3fc;
+    --muted: rgba(255,255,255,0.65);
+    --pale: rgba(255,255,255,0.15);
+    --accent: #38bdf8;
+    --fog: rgba(255,255,255,0.25);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: linear-gradient(160deg, #005fc4 0%, #0ea5e9 35%, #38bdf8 65%, #bae6fd 100%);
+    background: linear-gradient(135deg, #60c8f5 0%, #2196f3 30%, #1565c0 65%, #0d2a7a 100%);
     background-attachment: fixed;
-    color: var(--ink);
+    color: #ffffff;
     font-family: 'DM Sans', sans-serif;
     font-weight: 300;
     min-height: 100vh;
@@ -50,16 +50,16 @@
   }
 
   h1 {
-    font-family: 'Caveat', cursive;
-    font-weight: 500;
-    font-size: clamp(3.5rem, 8vw, 6rem);
-    letter-spacing: 0.02em;
+    font-family: 'Roboto Serif', serif;
+    font-weight: 300;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    letter-spacing: 0.03em;
     line-height: 1;
     color: #ffffff;
-    text-shadow: 0 2px 24px rgba(0,60,140,0.18);
+    text-shadow: 0 2px 32px rgba(0,30,100,0.25);
   }
 
-  h1 em { font-style: italic; color: #bae6fd; }
+  h1 em { font-style: italic; color: #e0f2fe; }
 
   .subtitle { margin-top: 1rem; font-size: 0.78rem; letter-spacing: 0.15em; color: rgba(255,255,255,0.6); font-weight: 200; }
 
@@ -85,13 +85,14 @@
   }
 
   .mood-prompt {
-    font-family: 'Caveat', cursive;
-    font-size: clamp(1.7rem, 4vw, 2.2rem);
-    font-weight: 500;
+    font-family: 'Roboto Serif', serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 300;
     font-style: italic;
     color: #ffffff;
+    text-shadow: 0 1px 12px rgba(0,20,80,0.2);
     margin-bottom: 2rem;
-    line-height: 1.4;
+    line-height: 1.5;
   }
 
   .mood-grid {
@@ -152,7 +153,7 @@
   }
 
   .intention-question {
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     font-size: clamp(1.2rem, 3vw, 1.6rem);
     font-weight: 400;
     font-style: italic;
@@ -175,10 +176,10 @@
     padding: 0.8rem 1.2rem;
     background: rgba(45,106,159,0.06);
     border-left: 2px solid var(--warm);
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     font-style: italic;
     font-size: 0.88rem;
-    color: var(--accent);
+    color: #7dd3fc;
     line-height: 1.6;
   }
 
@@ -219,7 +220,7 @@
     border: 1px solid rgba(255,255,255,0.3);
     color: #ffffff;
     padding: 1.1rem 1.4rem;
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     font-weight: 400;
     font-size: 1rem;
     font-style: italic;
@@ -272,30 +273,30 @@
   .result.visible { display: block; }
 
   .result-inner {
-    border: 1px solid var(--fog);
+    border: 1px solid rgba(255,255,255,0.25);
     padding: 3rem 2.5rem;
     position: relative;
-    background: rgba(255,255,255,0.6);
-    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
   }
 
   .result-inner::before {
     content: '';
     position: absolute;
     top: 6px; left: 6px; right: -6px; bottom: -6px;
-    border: 1px solid var(--fog);
+    border: 1px solid rgba(255,255,255,0.2);
     z-index: -1;
     opacity: 0.5;
   }
 
-  .card-number { font-family: 'DM Sans', sans-serif; font-weight: 200; font-size: 0.6rem; letter-spacing: 0.5em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
-  .card-name { font-family: 'Caveat', cursive; font-size: clamp(2rem, 5vw, 3rem); font-weight: 300; line-height: 1; margin-bottom: 0.3rem; }
-  .card-subtitle { font-family: 'Caveat', cursive; font-style: italic; font-size: 0.95rem; color: var(--muted); margin-bottom: 2rem; }
-  .result-divider { width: 100%; height: 1px; background: var(--fog); margin: 1.5rem 0; }
-  .result-section-label { font-size: 0.58rem; letter-spacing: 0.45em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
-  .archetype-text { font-family: 'Caveat', cursive; font-size: 1rem; font-style: italic; line-height: 1.8; color: var(--accent); margin-bottom: 0.5rem; }
-  .body-text { font-size: 0.8rem; line-height: 1.9; color: var(--muted); font-weight: 200; }
-  .symbol { font-size: 1.4rem; opacity: 0.25; position: absolute; top: 1.5rem; right: 1.5rem; font-family: serif; }
+  .card-number { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.6rem; letter-spacing: 0.5em; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .card-name { font-family: 'Roboto Serif', serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 300; line-height: 1.1; margin-bottom: 0.3rem; color: #ffffff; text-shadow: 0 1px 16px rgba(0,20,80,0.2); }
+  .card-subtitle { font-family: 'Roboto Serif', serif; font-style: italic; font-size: 0.95rem; color: rgba(255,255,255,0.7); margin-bottom: 2rem; }
+  .result-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.2); margin: 1.5rem 0; }
+  .result-section-label { font-size: 0.58rem; letter-spacing: 0.45em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 0.6rem; }
+  .archetype-text { font-family: 'Roboto Serif', serif; font-size: 1rem; font-style: italic; line-height: 1.8; color: #e0f2fe; margin-bottom: 0.5rem; }
+  .body-text { font-size: 0.85rem; line-height: 1.9; color: rgba(255,255,255,0.85); font-weight: 300; }
+  .symbol { font-size: 1.4rem; opacity: 0.2; position: absolute; top: 1.5rem; right: 1.5rem; font-family: serif; color: #ffffff; }
 
   /* Tea section */
   .tea-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
@@ -303,7 +304,7 @@
   .shuffle-tea-btn {
     background: transparent;
     border: none;
-    color: var(--muted);
+    color: rgba(255,255,255,0.65);
     font-family: 'DM Sans', sans-serif;
     font-weight: 200;
     font-size: 0.6rem;
@@ -317,7 +318,7 @@
     transition: color 0.2s;
   }
 
-  .shuffle-tea-btn:hover { color: var(--accent); }
+  .shuffle-tea-btn:hover { color: #7dd3fc; }
   .shuffle-tea-btn .shuffle-icon { font-size: 0.9rem; transition: transform 0.4s ease; display: inline-block; }
   .shuffle-tea-btn:hover .shuffle-icon { transform: rotate(180deg); }
 
@@ -329,21 +330,21 @@
     font-size: 0.55rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: var(--warm);
-    border: 1px solid var(--warm);
+    color: #7dd3fc;
+    border: 1px solid rgba(125,211,252,0.5);
     padding: 0.15rem 0.5rem;
     margin-bottom: 0.5rem;
-    opacity: 0.8;
+    opacity: 0.9;
   }
 
-  .tea-name { font-family: 'Caveat', cursive; font-size: 1.4rem; font-weight: 300; margin-bottom: 0.3rem; }
-  .tea-note { font-size: 0.78rem; color: var(--muted); line-height: 1.7; font-weight: 200; }
+  .tea-name { font-family: 'Roboto Serif', serif; font-size: 1.3rem; font-weight: 300; margin-bottom: 0.3rem; color: #ffffff; }
+  .tea-note { font-size: 0.82rem; color: rgba(255,255,255,0.8); line-height: 1.7; font-weight: 300; }
 
   /* Expandable tea detail */
   .tea-expand-btn {
     background: transparent;
     border: none;
-    color: var(--muted);
+    color: rgba(255,255,255,0.65);
     font-family: 'DM Sans', sans-serif;
     font-weight: 200;
     font-size: 0.6rem;
@@ -357,7 +358,7 @@
     transition: color 0.2s;
   }
 
-  .tea-expand-btn:hover { color: var(--accent); }
+  .tea-expand-btn:hover { color: #7dd3fc; }
 
   .tea-expand-icon {
     font-size: 0.65rem;
@@ -389,14 +390,14 @@
     font-size: 0.55rem;
     letter-spacing: 0.35em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: rgba(255,255,255,0.65);
     margin-bottom: 0.25rem;
   }
 
   .tea-detail-value {
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     font-size: 0.92rem;
-    color: var(--ink);
+    color: rgba(255,255,255,0.95);
     line-height: 1.5;
   }
 
@@ -416,10 +417,10 @@
   }
 
   .tea-try-text {
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     font-style: italic;
     font-size: 0.88rem;
-    color: var(--accent);
+    color: #7dd3fc;
     line-height: 1.6;
   }
 
@@ -431,7 +432,7 @@
   .cupboard-toggle-btn {
     background: transparent;
     border: none;
-    color: var(--muted);
+    color: rgba(255,255,255,0.65);
     font-family: 'DM Sans', sans-serif;
     font-weight: 200;
     font-size: 0.6rem;
@@ -446,23 +447,23 @@
     margin: 0 auto;
   }
 
-  .cupboard-toggle-btn:hover { color: var(--accent); }
+  .cupboard-toggle-btn:hover { color: #7dd3fc; }
 
   .cupboard-panel {
     display: none;
     margin-top: 1.2rem;
     padding: 1.5rem;
-    border: 1px solid var(--fog);
+    border: 1px solid rgba(255,255,255,0.2);
     animation: fadeUp 0.3s ease forwards;
   }
 
   .cupboard-panel.visible { display: block; }
 
   .cupboard-intro {
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     font-style: italic;
     font-size: 0.92rem;
-    color: var(--muted);
+    color: rgba(255,255,255,0.65);
     margin-bottom: 1.2rem;
     line-height: 1.6;
   }
@@ -483,7 +484,7 @@
   }
 
   .cupboard-item input[type="checkbox"] {
-    accent-color: var(--accent);
+    accent-color: #7dd3fc;
     width: 13px;
     height: 13px;
     cursor: pointer;
@@ -493,14 +494,14 @@
   .cupboard-item label {
     font-size: 0.75rem;
     font-weight: 200;
-    color: var(--ink);
+    color: rgba(255,255,255,0.95);
     cursor: pointer;
     letter-spacing: 0.05em;
   }
 
   .cupboard-save-btn {
-    background: var(--ink);
-    color: var(--parchment);
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
     border: none;
     padding: 0.7rem 1.8rem;
     font-family: 'DM Sans', sans-serif;
@@ -518,9 +519,9 @@
 
   .cupboard-match-note {
     font-size: 0.68rem;
-    color: var(--accent);
+    color: #7dd3fc;
     font-style: italic;
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     margin-top: 0.5rem;
     display: none;
   }
@@ -529,27 +530,27 @@
   .playlist-list { list-style: none; margin-top: 0.5rem; }
 
   .playlist-list li {
-    font-size: 0.78rem;
-    font-weight: 200;
-    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: rgba(255,255,255,0.9);
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--pale);
+    border-bottom: 1px solid rgba(255,255,255,0.12);
     display: flex;
     justify-content: space-between;
     align-items: baseline;
   }
 
   .playlist-list li:last-child { border-bottom: none; }
-  .track-artist { color: var(--muted); font-size: 0.7rem; margin-left: 1rem; text-align: right; font-style: italic; }
+  .track-artist { color: rgba(255,255,255,0.55); font-size: 0.72rem; margin-left: 1rem; text-align: right; font-style: italic; }
 
   /* Ritual */
-  .ritual-box { background: rgba(201,169,110,0.08); border-left: 2px solid var(--warm); padding: 1rem 1.2rem; margin-top: 0.5rem; }
-  .ritual-box p { font-family: 'Caveat', cursive; font-style: italic; font-size: 0.92rem; line-height: 1.7; color: var(--accent); }
+  .ritual-box { background: rgba(255,255,255,0.08); border-left: 2px solid rgba(125,211,252,0.6); padding: 1rem 1.2rem; margin-top: 0.5rem; }
+  .ritual-box p { font-family: 'Roboto Serif', serif; font-style: italic; font-size: 0.92rem; line-height: 1.7; color: #e0f2fe; }
 
   .reset-btn {
     background: transparent;
-    border: 1px solid var(--fog);
-    color: var(--muted);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.65);
     padding: 0.7rem 2rem;
     font-family: 'DM Sans', sans-serif;
     font-weight: 200;
@@ -562,15 +563,15 @@
     transition: all 0.25s;
   }
 
-  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn:hover { border-color: #7dd3fc; color: #7dd3fc; }
 
   .loading {
     text-align: center;
     padding: 3rem 0;
-    font-family: 'Caveat', cursive;
+    font-family: 'Roboto Serif', serif;
     font-style: italic;
-    color: var(--muted);
-    font-size: 1rem;
+    color: rgba(255,255,255,0.85);
+    font-size: 1.1rem;
   }
 
   .loading::after {
