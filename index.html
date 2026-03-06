@@ -7,27 +7,46 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Serif:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,wght@0,200;0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #ffffff;
-    --parchment: #e8f4ff;
-    --warm: #7dd3fc;
-    --muted: rgba(255,255,255,0.65);
-    --pale: rgba(255,255,255,0.15);
-    --accent: #38bdf8;
-    --fog: rgba(255,255,255,0.25);
+    --ink: #2a1f14;
+    --parchment: #f0e6d3;
+    --warm: #8b6340;
+    --muted: rgba(80,55,30,0.7);
+    --pale: rgba(80,55,30,0.12);
+    --accent: #8b6340;
+    --fog: rgba(80,55,30,0.2);
+    --text-main: #2a1f14;
+    --text-muted: rgba(80,55,30,0.7);
+    --mood-accent: rgba(180,140,90,0.35);
+    --mood-accent-low: rgba(140,100,60,0.25);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: linear-gradient(135deg, #60c8f5 0%, #2196f3 30%, #1565c0 65%, #0d2a7a 100%);
+    background: linear-gradient(135deg, #f5ede0 0%, #e8d5b8 40%, #d4b896 100%);
     background-attachment: fixed;
-    color: #ffffff;
+    color: #2a1f14;
     font-family: 'DM Sans', sans-serif;
     font-weight: 300;
     min-height: 100vh;
     overflow-x: hidden;
-    transition: background 2s ease;
+    transition: background 1.2s ease, color 1.2s ease;
+    position: relative;
   }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.45;
+    transition: background 1.2s ease;
+    background: radial-gradient(ellipse at 20% 10%, var(--mood-accent, rgba(100,140,255,0.5)) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 90%, var(--mood-accent-low, rgba(40,60,180,0.3)) 0%, transparent 55%);
+  }
+
+  body > * { position: relative; z-index: 1; }
 
   /* Language toggle */
   .lang-toggle {
@@ -40,9 +59,9 @@
   }
 
   .lang-btn {
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: rgba(255,255,255,0.7);
+    background: var(--pale);
+    border: 1px solid var(--fog);
+    color: var(--muted);
     font-family: 'DM Sans', sans-serif;
     font-size: 0.6rem;
     font-weight: 400;
@@ -54,8 +73,8 @@
     text-transform: uppercase;
   }
 
-  .lang-btn:hover { background: rgba(255,255,255,0.25); color: #ffffff; }
-  .lang-btn.active { background: rgba(255,255,255,0.3); color: #ffffff; border-color: rgba(255,255,255,0.7); }
+  .lang-btn:hover { background: var(--fog); color: var(--text-main); }
+  .lang-btn.active { background: var(--fog); color: var(--text-main); border-color: var(--accent); }
 
   body::before {
     content: '';
@@ -73,7 +92,7 @@
     font-weight: 200;
     letter-spacing: 0.35em;
     font-size: 0.65rem;
-    color: rgba(255,255,255,0.7);
+    color: var(--muted);
     text-transform: uppercase;
     margin-bottom: 1rem;
   }
@@ -90,7 +109,7 @@
 
   h1 em { font-style: italic; color: #e0f2fe; }
 
-  .subtitle { margin-top: 1rem; font-size: 0.78rem; letter-spacing: 0.15em; color: rgba(255,255,255,0.6); font-weight: 200; }
+  .subtitle { margin-top: 1rem; font-size: 0.78rem; letter-spacing: 0.15em; color: var(--muted); font-weight: 200; }
 
   .divider { width: 40px; height: 1px; background: rgba(255,255,255,0.4); margin: 2rem auto; opacity: 0.8; }
 
@@ -132,9 +151,9 @@
   }
 
   .mood-btn {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.28);
-    color: rgba(255,255,255,0.75);
+    background: var(--pale);
+    border: 1px solid var(--fog);
+    color: var(--muted);
     padding: 1.1rem 0.75rem 0.9rem;
     font-family: 'DM Sans', sans-serif;
     font-weight: 400;
@@ -146,7 +165,7 @@
     backdrop-filter: blur(6px);
   }
 
-  .mood-btn:hover { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.22); color: #fff; }
+  .mood-btn:hover { border-color: var(--accent); background: var(--fog); color: var(--text-main); }
 
   .mood-btn.selected {
     border-color: #ffffff;
@@ -405,14 +424,14 @@
     opacity: 0.5;
   }
 
-  .card-number { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.6rem; letter-spacing: 0.5em; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 0.5rem; }
-  .card-name { font-family: 'Roboto Serif', serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 300; line-height: 1.1; margin-bottom: 0.3rem; color: #ffffff; text-shadow: 0 1px 16px rgba(0,20,80,0.2); }
-  .card-subtitle { font-family: 'Roboto Serif', serif; font-style: italic; font-size: 0.95rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem; }
-  .card-suit { font-family: 'DM Sans', sans-serif; font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
+  .card-number { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.6rem; letter-spacing: 0.5em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .card-name { font-family: 'Roboto Serif', serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 300; line-height: 1.1; margin-bottom: 0.3rem; color: inherit; text-shadow: 0 1px 16px rgba(0,20,80,0.2); }
+  .card-subtitle { font-family: 'Roboto Serif', serif; font-style: italic; font-size: 0.95rem; color: var(--muted); margin-bottom: 0.5rem; }
+  .card-suit { font-family: 'DM Sans', sans-serif; font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; }
   .result-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.2); margin: 1.5rem 0; }
-  .result-section-label { font-size: 0.58rem; letter-spacing: 0.45em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 0.6rem; }
+  .result-section-label { font-size: 0.58rem; letter-spacing: 0.45em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
   .archetype-text { font-family: 'Roboto Serif', serif; font-size: 1rem; font-style: italic; line-height: 1.8; color: #e0f2fe; margin-bottom: 0.5rem; }
-  .body-text { font-size: 0.85rem; line-height: 1.9; color: rgba(255,255,255,0.85); font-weight: 300; }
+  .body-text { font-size: 0.85rem; line-height: 1.9; color: var(--muted); font-weight: 300; }
   /* Card flip */
   .card-flip-wrap {
     perspective: 1000px;
@@ -998,34 +1017,49 @@
 
 <script>
 // ─────────────────────────────────────────────
-// TIME-BASED GRADIENT
+// MOOD-REACTIVE GRADIENT
 // ─────────────────────────────────────────────
-const timeGradients = {
-  // 5am–10am: warm golden morning
-  morning:   'linear-gradient(135deg, #f9a825 0%, #fb8c00 30%, #e65100 65%, #bf360c 100%)',
-  // 10am–5pm: clear blue afternoon
-  afternoon: 'linear-gradient(135deg, #60c8f5 0%, #2196f3 30%, #1565c0 65%, #0d2a7a 100%)',
-  // 5pm–8pm: golden hour peach-rose
-  evening:   'linear-gradient(135deg, #ffb347 0%, #e91e8c 40%, #9c27b0 75%, #4a148c 100%)',
-  // 8pm–5am: deep indigo night
-  night:     'linear-gradient(135deg, #4a148c 0%, #311b92 35%, #1a237e 65%, #0a0a2e 100%)'
+const moodGradients = {
+  'introspective': { bg: 'linear-gradient(135deg, #0d0d1f 0%, #111830 40%, #0a2550 100%)', accent: 'rgba(80,130,240,0.65)', accentLow: 'rgba(20,50,140,0.45)' },
+  'melancholic':   { bg: 'linear-gradient(135deg, #1a2535 0%, #263a52 40%, #304e6e 100%)', accent: 'rgba(100,160,220,0.6)',  accentLow: 'rgba(40,75,140,0.4)' },
+  'suspended':     { bg: 'linear-gradient(135deg, #0e1520 0%, #192840 45%, #224060 100%)', accent: 'rgba(90,150,210,0.6)',  accentLow: 'rgba(30,70,140,0.4)' },
+  'shadowed':      { bg: 'linear-gradient(135deg, #050508 0%, #0e0e20 40%, #161630 100%)', accent: 'rgba(60,60,180,0.55)',  accentLow: 'rgba(15,15,80,0.4)' },
+  'solemn':        { bg: 'linear-gradient(135deg, #0e1020 0%, #161d38 40%, #1c2a50 100%)', accent: 'rgba(70,110,210,0.6)',  accentLow: 'rgba(20,50,130,0.4)' },
+  'reckoning':     { bg: 'linear-gradient(135deg, #100a22 0%, #1e1040 40%, #2d1a60 100%)', accent: 'rgba(140,80,230,0.65)', accentLow: 'rgba(60,20,150,0.45)' },
+  'tender':        { bg: 'linear-gradient(135deg, #300a28 0%, #5e2050 40%, #8a3568 100%)', accent: 'rgba(220,100,170,0.65)', accentLow: 'rgba(130,40,100,0.45)' },
+  'joyful':        { bg: 'linear-gradient(135deg, #8c4010 0%, #b55e20 40%, #d47830 100%)', accent: 'rgba(250,170,70,0.65)',  accentLow: 'rgba(180,90,20,0.45)' },
+  'playful':       { bg: 'linear-gradient(135deg, #5c1a40 0%, #902848 40%, #c04055 100%)', accent: 'rgba(240,100,130,0.65)', accentLow: 'rgba(150,40,70,0.45)' },
+  'flowing':       { bg: 'linear-gradient(135deg, #0a2035 0%, #0e4055 40%, #106070 100%)', accent: 'rgba(50,200,220,0.6)',  accentLow: 'rgba(10,100,140,0.4)' },
+  'awakening':     { bg: 'linear-gradient(135deg, #4a1e08 0%, #7a3015 40%, #b04a25 100%)', accent: 'rgba(240,140,60,0.65)',  accentLow: 'rgba(150,60,10,0.45)' },
+  'electric':      { bg: 'linear-gradient(135deg, #080518 0%, #1c1545 40%, #150f30 100%)', accent: 'rgba(160,100,255,0.7)',  accentLow: 'rgba(70,30,200,0.5)' },
+  'fierce':        { bg: 'linear-gradient(135deg, #200000 0%, #550808 40%, #900a0a 100%)', accent: 'rgba(240,50,50,0.65)',   accentLow: 'rgba(150,10,10,0.45)' },
+  'expansive':     { bg: 'linear-gradient(135deg, #051520 0%, #0d3060 40%, #104080 100%)', accent: 'rgba(50,150,250,0.6)',  accentLow: 'rgba(10,60,170,0.4)' },
+  'fated':         { bg: 'linear-gradient(135deg, #0f0520 0%, #280f50 40%, #400a70 100%)', accent: 'rgba(180,80,255,0.65)', accentLow: 'rgba(90,10,180,0.45)' },
+  'grounded':      { bg: 'linear-gradient(135deg, #0a150a 0%, #1a3020 40%, #224530 100%)', accent: 'rgba(70,200,100,0.55)', accentLow: 'rgba(20,100,45,0.4)' },
+  'searching':     { bg: 'linear-gradient(135deg, #0c1020 0%, #172040 40%, #1c3060 100%)', accent: 'rgba(80,130,230,0.6)',  accentLow: 'rgba(20,55,160,0.4)' },
+  'in-between':    { bg: 'linear-gradient(135deg, #160f20 0%, #281e3a 40%, #342850 100%)', accent: 'rgba(150,100,210,0.6)', accentLow: 'rgba(70,40,130,0.4)' },
+  default:         { bg: 'linear-gradient(135deg, #f5ede0 0%, #e8d5b8 40%, #d4b896 100%)', accent: 'rgba(180,140,90,0.35)',  accentLow: 'rgba(140,100,60,0.25)' },
 };
 
-function getTimeOfDay() {
-  const h = new Date().getHours();
-  if (h >= 5  && h < 10) return 'morning';
-  if (h >= 10 && h < 17) return 'afternoon';
-  if (h >= 17 && h < 20) return 'evening';
-  return 'night';
+function applyMoodGradient(mood) {
+  const g = moodGradients[mood] || moodGradients.default;
+  document.body.style.background = g.bg;
+  document.documentElement.style.setProperty('--mood-accent', g.accent);
+  document.documentElement.style.setProperty('--mood-accent-low', g.accentLow);
+  const isLight = (mood === 'default');
+  document.body.style.color = isLight ? '#2a1f14' : '#ffffff';
+  // Update CSS vars for components
+  document.documentElement.style.setProperty('--text-main',  isLight ? '#2a1f14' : '#ffffff');
+  document.documentElement.style.setProperty('--text-muted', isLight ? 'rgba(80,55,30,0.7)' : 'rgba(255,255,255,0.6)');
+  document.documentElement.style.setProperty('--warm',       isLight ? '#8b6340' : '#7dd3fc');
+  document.documentElement.style.setProperty('--muted',      isLight ? 'rgba(80,55,30,0.7)' : 'rgba(255,255,255,0.65)');
+  document.documentElement.style.setProperty('--pale',       isLight ? 'rgba(80,55,30,0.12)' : 'rgba(255,255,255,0.15)');
+  document.documentElement.style.setProperty('--fog',        isLight ? 'rgba(80,55,30,0.2)' : 'rgba(255,255,255,0.25)');
+  document.documentElement.style.setProperty('--accent',     isLight ? '#8b6340' : '#38bdf8');
 }
 
-function applyTimeGradient() {
-  document.body.style.background = timeGradients[getTimeOfDay()];
-}
-
-applyTimeGradient();
-// Recheck every 10 minutes in case page stays open
-setInterval(applyTimeGradient, 10 * 60 * 1000);
+// Start with calm default
+applyMoodGradient('default');
 
 // ─────────────────────────────────────────────
 // LANGUAGE SYSTEM
@@ -2476,6 +2510,7 @@ function selectMood(btn) {
   btn.classList.add('selected');
   selectedMood = btn.dataset.mood;
   document.getElementById('moodConfirmBar').classList.add('visible');
+  applyMoodGradient(selectedMood);
 }
 
 // Pick a random card from a pool of mood keys
@@ -2853,6 +2888,7 @@ function reset() {
     if (i === 1) dot.classList.add('active');
   }
   document.getElementById('resetBtn').style.display = 'none';
+  applyMoodGradient('default');
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
