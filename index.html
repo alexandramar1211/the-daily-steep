@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Daily Steep</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=DM+Sans:ital,wght@0,200;0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #071428;
+    --parchment: #e8f4ff;
+    --warm: #38a8f5;
+    --muted: #5b89b8;
+    --pale: #c8e4f8;
+    --accent: #0066cc;
+    --fog: #a8d0ee;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(160deg, #005fc4 0%, #0ea5e9 35%, #38bdf8 65%, #bae6fd 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header { padding: 4rem 2rem 2rem; text-align: center; position: relative; }
+
+  .title-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 200;
+    letter-spacing: 0.35em;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Caveat', cursive;
+    font-weight: 500;
+    font-size: clamp(3.5rem, 8vw, 6rem);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 0 2px 24px rgba(0,60,140,0.18);
+  }
+
+  h1 em { font-style: italic; color: #bae6fd; }
+
+  .subtitle { margin-top: 1rem; font-size: 0.78rem; letter-spacing: 0.15em; color: rgba(255,255,255,0.6); font-weight: 200; }
+
+  .divider { width: 40px; height: 1px; background: rgba(255,255,255,0.4); margin: 2rem auto; opacity: 0.8; }
+
+  .step {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  .step.hidden { display: none; }
+
+  .step-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 1.4rem;
+  }
+
+  .mood-prompt {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1.7rem, 4vw, 2.2rem);
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    margin-bottom: 2rem;
+    line-height: 1.4;
+  }
+
+  .mood-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .mood-btn {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #ffffff;
+    padding: 1.1rem 0.75rem 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    font-size: 0.88rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+    backdrop-filter: blur(6px);
+  }
+
+  .mood-btn:hover { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.28); }
+  .mood-btn.selected { border-color: #ffffff; background: rgba(255,255,255,0.35); color: #ffffff; font-weight: 500; }
+  .mood-btn .mood-icon { display: block; font-size: 1.3rem; margin-bottom: 0.45rem; opacity: 0.9; }
+
+  /* Intention step */
+  #step0 { animation: fadeUp 0.6s ease forwards; }
+
+  .intention-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  .intention-card::before {
+    content: '';
+    position: absolute;
+    top: 5px; left: 5px; right: -5px; bottom: -5px;
+    border: 1px solid rgba(255,255,255,0.15);
+    z-index: -1;
+    opacity: 0.6;
+  }
+
+  .intention-symbol {
+    font-size: 2rem;
+    opacity: 0.5;
+    margin-bottom: 1.2rem;
+    display: block;
+    letter-spacing: 0.2em;
+    color: #ffffff;
+  }
+
+  .intention-question {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight: 400;
+    font-style: italic;
+    color: #ffffff;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .intention-note {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    font-weight: 200;
+  }
+
+  .intention-carried {
+    display: none;
+    margin-top: 1.5rem;
+    padding: 0.8rem 1.2rem;
+    background: rgba(45,106,159,0.06);
+    border-left: 2px solid var(--warm);
+    font-family: 'Caveat', cursive;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--accent);
+    line-height: 1.6;
+  }
+
+  .shuffle-moods-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0;
+    transition: color 0.2s;
+  }
+
+  .shuffle-moods-btn:hover { color: rgba(255,255,255,0.95); }
+
+  .shuffle-moods-btn .shuffle-icon {
+    font-size: 0.9rem;
+    display: inline-block;
+    transition: transform 0.5s ease;
+  }
+
+  .shuffle-moods-btn.spinning .shuffle-icon { transform: rotate(360deg); }
+
+  /* Follow-up */
+  #step2 { animation: fadeUp 0.5s ease forwards; }
+
+  .followup-options { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 2.5rem; }
+
+  .followup-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #ffffff;
+    padding: 1.1rem 1.4rem;
+    font-family: 'Caveat', cursive;
+    font-weight: 400;
+    font-size: 1rem;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: left;
+    line-height: 1.5;
+    backdrop-filter: blur(6px);
+  }
+
+  .followup-btn:hover { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.25); }
+  .followup-btn.selected { border-color: #ffffff; background: rgba(255,255,255,0.3); }
+
+  /* CTA */
+  .cta-btn {
+    background: rgba(255,255,255,0.92);
+    color: #0a3a6e;
+    border: none;
+    padding: 1rem 2.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    font-size: 0.72rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .cta-btn:hover { background: #ffffff; color: #005fc4; }
+  .cta-btn:disabled { opacity: 0.3; cursor: not-allowed; background: rgba(255,255,255,0.92); }
+
+  /* Result */
+  .result {
+    display: none;
+    max-width: 680px;
+    margin: 0 auto 4rem;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.7s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result.visible { display: block; }
+
+  .result-inner {
+    border: 1px solid var(--fog);
+    padding: 3rem 2.5rem;
+    position: relative;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(12px);
+  }
+
+  .result-inner::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 6px; right: -6px; bottom: -6px;
+    border: 1px solid var(--fog);
+    z-index: -1;
+    opacity: 0.5;
+  }
+
+  .card-number { font-family: 'DM Sans', sans-serif; font-weight: 200; font-size: 0.6rem; letter-spacing: 0.5em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .card-name { font-family: 'Caveat', cursive; font-size: clamp(2rem, 5vw, 3rem); font-weight: 300; line-height: 1; margin-bottom: 0.3rem; }
+  .card-subtitle { font-family: 'Caveat', cursive; font-style: italic; font-size: 0.95rem; color: var(--muted); margin-bottom: 2rem; }
+  .result-divider { width: 100%; height: 1px; background: var(--fog); margin: 1.5rem 0; }
+  .result-section-label { font-size: 0.58rem; letter-spacing: 0.45em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+  .archetype-text { font-family: 'Caveat', cursive; font-size: 1rem; font-style: italic; line-height: 1.8; color: var(--accent); margin-bottom: 0.5rem; }
+  .body-text { font-size: 0.8rem; line-height: 1.9; color: var(--muted); font-weight: 200; }
+  .symbol { font-size: 1.4rem; opacity: 0.25; position: absolute; top: 1.5rem; right: 1.5rem; font-family: serif; }
+
+  /* Tea section */
+  .tea-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+
+  .shuffle-tea-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 200;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0;
+    transition: color 0.2s;
+  }
+
+  .shuffle-tea-btn:hover { color: var(--accent); }
+  .shuffle-tea-btn .shuffle-icon { font-size: 0.9rem; transition: transform 0.4s ease; display: inline-block; }
+  .shuffle-tea-btn:hover .shuffle-icon { transform: rotate(180deg); }
+
+  .tea-block { transition: opacity 0.25s ease; }
+  .tea-block.fading { opacity: 0; }
+
+  .tea-family-tag {
+    display: inline-block;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--warm);
+    border: 1px solid var(--warm);
+    padding: 0.15rem 0.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+  }
+
+  .tea-name { font-family: 'Caveat', cursive; font-size: 1.4rem; font-weight: 300; margin-bottom: 0.3rem; }
+  .tea-note { font-size: 0.78rem; color: var(--muted); line-height: 1.7; font-weight: 200; }
+
+  /* Expandable tea detail */
+  .tea-expand-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 200;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.5rem 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: color 0.2s;
+  }
+
+  .tea-expand-btn:hover { color: var(--accent); }
+
+  .tea-expand-icon {
+    font-size: 0.65rem;
+    transition: transform 0.3s ease;
+    display: inline-block;
+  }
+
+  .tea-expand-icon.open { transform: rotate(180deg); }
+
+  .tea-detail {
+    display: none;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--pale);
+  }
+
+  .tea-detail.visible { display: block; animation: fadeUp 0.3s ease forwards; }
+
+  .tea-detail-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .tea-detail-item { flex: 1; min-width: 120px; }
+
+  .tea-detail-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .tea-detail-value {
+    font-family: 'Caveat', cursive;
+    font-size: 0.92rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .tea-try-differently {
+    margin-top: 0.8rem;
+    padding: 0.9rem 1.1rem;
+    background: rgba(201,169,110,0.08);
+    border-left: 2px solid var(--warm);
+  }
+
+  .tea-try-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--warm);
+    margin-bottom: 0.3rem;
+  }
+
+  .tea-try-text {
+    font-family: 'Caveat', cursive;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--accent);
+    line-height: 1.6;
+  }
+
+  /* Cupboard filter */
+  .cupboard-section {
+    margin-top: 1rem;
+  }
+
+  .cupboard-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 200;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0;
+    transition: color 0.2s;
+    margin: 0 auto;
+  }
+
+  .cupboard-toggle-btn:hover { color: var(--accent); }
+
+  .cupboard-panel {
+    display: none;
+    margin-top: 1.2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--fog);
+    animation: fadeUp 0.3s ease forwards;
+  }
+
+  .cupboard-panel.visible { display: block; }
+
+  .cupboard-intro {
+    font-family: 'Caveat', cursive;
+    font-style: italic;
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+  }
+
+  .cupboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .cupboard-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.4rem 0;
+  }
+
+  .cupboard-item input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .cupboard-item label {
+    font-size: 0.75rem;
+    font-weight: 200;
+    color: var(--ink);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+
+  .cupboard-save-btn {
+    background: var(--ink);
+    color: var(--parchment);
+    border: none;
+    padding: 0.7rem 1.8rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .cupboard-save-btn:hover { background: var(--accent); }
+
+  .cupboard-match-note {
+    font-size: 0.68rem;
+    color: var(--accent);
+    font-style: italic;
+    font-family: 'Caveat', cursive;
+    margin-top: 0.5rem;
+    display: none;
+  }
+
+  /* Playlist */
+  .playlist-list { list-style: none; margin-top: 0.5rem; }
+
+  .playlist-list li {
+    font-size: 0.78rem;
+    font-weight: 200;
+    color: var(--ink);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--pale);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .playlist-list li:last-child { border-bottom: none; }
+  .track-artist { color: var(--muted); font-size: 0.7rem; margin-left: 1rem; text-align: right; font-style: italic; }
+
+  /* Ritual */
+  .ritual-box { background: rgba(201,169,110,0.08); border-left: 2px solid var(--warm); padding: 1rem 1.2rem; margin-top: 0.5rem; }
+  .ritual-box p { font-family: 'Caveat', cursive; font-style: italic; font-size: 0.92rem; line-height: 1.7; color: var(--accent); }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--fog);
+    color: var(--muted);
+    padding: 0.7rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 200;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: block;
+    margin: 2rem auto 0;
+    transition: all 0.25s;
+  }
+
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .loading {
+    text-align: center;
+    padding: 3rem 0;
+    font-family: 'Caveat', cursive;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--warm);
+    margin-left: 0.5rem;
+    animation: blink 1.2s infinite;
+    vertical-align: middle;
+  }
+
+  @keyframes blink { 0%,100%{opacity:0} 50%{opacity:1} }
+
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="title-eyebrow">Ten minutes, just for you</p>
+  <h1>The Daily <em>Steep</em></h1>
+  <p class="subtitle">music · tarot · tea</p>
+  <div class="divider"></div>
+</header>
+
+<!-- STEP 0: Intention -->
+<div class="step" id="step0">
+  <p class="step-label">Before you begin</p>
+  <div class="intention-card">
+    <span class="intention-symbol">✦ ✦ ✦</span>
+    <p class="intention-question" id="intentionQuestion"></p>
+    <p class="intention-note">Sit with this. No answer needed.</p>
+  </div>
+  <button class="cta-btn" onclick="onIntentionContinue()">I'm ready</button>
+</div>
+
+<!-- STEP 1: Mood -->
+<div class="step hidden" id="step1">
+  <p class="step-label">Take a breath. Begin when you're ready.</p>
+  <p class="mood-prompt">How are you feeling right now?</p>
+  <div style="display:flex; justify-content:flex-end; margin-bottom:0.6rem;">
+    <button class="shuffle-moods-btn" onclick="shuffleMoods()">
+      <span class="shuffle-icon" id="moodShuffleIcon">⟳</span> shuffle
+    </button>
+  </div>
+  <div class="mood-grid" id="moodGrid"></div>
+  <button class="cta-btn" id="revealBtn1" onclick="onMoodConfirm()" disabled>This feels right</button>
+</div>
+
+<!-- STEP 2: Follow-up -->
+<div class="step hidden" id="step2">
+  <p class="step-label">Just one more question, gently.</p>
+  <p class="mood-prompt" id="followupQuestion"></p>
+  <div class="followup-options" id="followupOptions"></div>
+  <button class="cta-btn" id="revealBtn2" onclick="onFollowupConfirm()" disabled>Reveal my card</button>
+</div>
+
+<!-- RESULT -->
+<div class="result" id="result">
+  <div id="loadingState" class="loading">Steeping your reading</div>
+  <div id="resultContent" style="display:none;">
+    <div class="result-inner">
+      <span class="symbol" id="cardSymbol"></span>
+      <p class="card-number" id="cardNumber"></p>
+      <h2 class="card-name" id="cardName"></h2>
+      <p class="card-subtitle" id="cardSubtitle"></p>
+
+      <div class="result-divider"></div>
+
+      <p class="result-section-label">Archetype</p>
+      <p class="archetype-text" id="archetypeText"></p>
+      <p class="body-text" id="cardBody"></p>
+
+      <div class="result-divider"></div>
+
+      <!-- TEA -->
+      <div class="tea-section-header">
+        <p class="result-section-label" style="margin-bottom:0">Your Tea</p>
+        <button class="shuffle-tea-btn" onclick="shuffleTea()">
+          <span class="shuffle-icon">⟳</span> another steep
+        </button>
+      </div>
+
+      <div class="tea-block" id="teaBlock">
+        <span class="tea-family-tag" id="teaFamily"></span>
+        <p class="tea-name" id="teaName"></p>
+        <p class="tea-note" id="teaNote"></p>
+
+        <button class="tea-expand-btn" onclick="toggleTeaDetail()" id="teaExpandBtn">
+          <span class="tea-expand-icon" id="teaExpandIcon">▾</span>
+          about this tea
+        </button>
+
+        <div class="tea-detail" id="teaDetail">
+          <div class="tea-detail-row">
+            <div class="tea-detail-item">
+              <p class="tea-detail-label">Origin</p>
+              <p class="tea-detail-value" id="teaOrigin"></p>
+            </div>
+            <div class="tea-detail-item">
+              <p class="tea-detail-label">Flavour</p>
+              <p class="tea-detail-value" id="teaFlavour"></p>
+            </div>
+            <div class="tea-detail-item">
+              <p class="tea-detail-label">Brew</p>
+              <p class="tea-detail-value" id="teaBrew"></p>
+            </div>
+          </div>
+          <div class="tea-try-differently">
+            <p class="tea-try-label">Try it differently</p>
+            <p class="tea-try-text" id="teaTryDifferently"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUPBOARD -->
+      <div class="cupboard-section">
+        <button class="cupboard-toggle-btn" onclick="toggleCupboard()">
+          <span>☕</span> what's in your cupboard?
+        </button>
+        <div class="cupboard-panel" id="cupboardPanel">
+          <p class="cupboard-intro">Tell us what you have at home and we'll show you how your card's teas match what's in your cupboard.</p>
+          <div class="cupboard-grid" id="cupboardGrid"></div>
+          <button class="cupboard-save-btn" onclick="saveCupboard()">Show my matches</button>
+        </div>
+        <p class="cupboard-match-note" id="cupboardMatchNote"></p>
+      </div>
+
+      <div class="result-divider"></div>
+
+      <p class="result-section-label">Suggested Tracks</p>
+      <ul class="playlist-list" id="playlist"></ul>
+
+      <div class="result-divider"></div>
+
+      <p class="result-section-label">The Ritual</p>
+      <div class="ritual-box"><p id="ritualText"></p></div>
+
+      <div class="intention-carried" id="intentionCarried">
+        <span style="font-size:0.55rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--muted);font-style:normal;display:block;margin-bottom:0.3rem;">Your intention</span>
+        <span id="intentionCarriedText"></span>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="reset()">Begin a new reading</button>
+  </div>
+</div>
+
+<footer>The Daily Steep &nbsp;·&nbsp; ten minutes, just for you</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// TEA LIBRARY
+// ─────────────────────────────────────────────
+const teaLibrary = {
+  earlgrey: {
+    id: 'earlgrey',
+    name: 'Earl Grey',
+    family: 'Black Tea',
+    familyTag: 'Black · Blended',
+    origin: 'Blend of black tea & bergamot oil, popularised in Britain',
+    flavour: 'Floral, citrusy bergamot over a malty black tea base. Bright and aromatic.',
+    brew: '95°C · 3–4 min',
+    note: 'Familiar and comforting — the scent of bergamot alone is its own small ritual.',
+    tryDifferently: 'Add a splash of warm oat milk and a drop of honey for a London Fog. Sweetened with monk fruit, it becomes something almost dessert-like. Try it iced with a slice of orange in summer.',
+    moods: ['solemn','tender','introspective','grounded','searching']
+  },
+  sencha: {
+    id: 'sencha',
+    name: 'Sencha',
+    family: 'Green Tea',
+    familyTag: 'Green · Japanese',
+    origin: 'Japan — steamed and rolled, the most consumed tea in Japan',
+    flavour: 'Fresh cut grass, ocean breeze, faintly sweet. Clean and alive.',
+    brew: '70°C · 1–1.5 min',
+    note: 'The everyday tea of Japan, at its best when you are paying full attention.',
+    tryDifferently: 'Brew it cooler and longer (60°C, 2 min) for a sweeter, gentler cup. A few drops of honey bring out its natural sweetness without masking it. Try it iced in a tall glass — it becomes something entirely different.',
+    moods: ['expansive','joyful','electric','reckoning','awakening']
+  },
+  matcha: {
+    id: 'matcha',
+    name: 'Matcha',
+    family: 'Green Tea',
+    familyTag: 'Green · Japanese',
+    origin: 'Japan — shade-grown, stone-ground into a fine powder',
+    flavour: 'Grassy, umami-rich, slightly bitter, with a long creamy finish.',
+    brew: '70–75°C · whisked, not steeped',
+    note: 'It demands your full attention to prepare. That preparation is the point.',
+    tryDifferently: 'Whisk with warm oat or almond milk instead of water for a matcha latte — softer, creamier, more approachable. A touch of honey or monk fruit balances the bitterness beautifully. Iced matcha latte on a warm morning is its own kind of joy.',
+    moods: ['electric','fierce','awakening','reckoning','joyful']
+  },
+  jasmine: {
+    id: 'jasmine',
+    name: 'Jasmine Tea',
+    family: 'Scented Green Tea',
+    familyTag: 'Green · Scented',
+    origin: 'China — green tea layered with fresh jasmine blossoms, sometimes multiple times',
+    flavour: 'Heady floral jasmine over a gentle green base. Soft, perfumed, romantic.',
+    brew: '75–80°C · 2 min',
+    note: 'Light, a little playful — a tea that fills the room before you even sip it.',
+    tryDifferently: 'Lightly sweetened with honey it becomes almost dessert-like. Try it as a cold brew overnight in the fridge — the jasmine becomes more delicate and hauntingly floral. A few rose petals in the cup make it feel like an occasion.',
+    moods: ['tender','playful','joyful','searching','flowing']
+  },
+  genmaicha: {
+    id: 'genmaicha',
+    name: 'Genmaicha',
+    family: 'Green Tea',
+    familyTag: 'Green · Japanese',
+    origin: 'Japan — green tea blended with roasted brown rice',
+    flavour: 'Toasty, nutty, with a gentle green tea base. Humble and deeply satisfying.',
+    brew: '80°C · 1.5–2 min',
+    note: 'A peasant tea with the grace of ceremony. Two things that had no business together — and yet.',
+    tryDifferently: 'Add a small splash of oat milk for a surprisingly creamy, almost popcorn-like warmth. A little stevia keeps it light. Beautiful cold-brewed — the roasted notes mellow into something almost caramel-like.',
+    moods: ['grounded','flowing','solemn','suspended','introspective']
+  },
+  hojicha: {
+    id: 'hojicha',
+    name: 'Hojicha',
+    family: 'Roasted Green Tea',
+    familyTag: 'Green · Roasted',
+    origin: 'Japan — green tea roasted over charcoal until it turns a warm reddish-brown',
+    flavour: 'Toasty, caramel-like, low in bitterness and caffeine. Tastes like autumn.',
+    brew: '90°C · 1–2 min',
+    note: 'It tastes like letting go. The roasting removes the grassy edge and leaves only warmth.',
+    tryDifferently: 'Stunning as a latte with oat milk and a pinch of cinnamon. Sweetened with honey it becomes a bedtime ritual. A hojicha cold brew over ice is one of summer\'s quiet pleasures.',
+    moods: ['melancholic','suspended','grounded','solemn','liminal']
+  },
+  oolong: {
+    id: 'oolong',
+    name: 'Oolong',
+    family: 'Oolong Tea',
+    familyTag: 'Oolong',
+    origin: 'China & Taiwan — partially oxidised, sitting between green and black tea',
+    flavour: 'Varies widely: floral and buttery to roasted and stone-fruit. Endlessly complex.',
+    brew: '85–95°C · 1–3 min, multiple infusions',
+    note: 'Neither fully one thing nor another — a tea of beautiful in-between states.',
+    tryDifferently: 'The second and third infusions are often better than the first — let it open. A lighter oolong with a touch of honey becomes floral and yielding. Milk oolong (Jin Xuan) is naturally creamy without adding anything at all.',
+    moods: ['liminal','flowing','searching','fated','introspective']
+  },
+  morningblend: {
+    id: 'morningblend',
+    name: 'English Breakfast',
+    family: 'Black Tea',
+    familyTag: 'Black · Blended',
+    origin: 'A blend of Assam, Ceylon, and Kenyan black teas, built for the British morning',
+    flavour: 'Bold, malty, robust. The tea that wakes you up and means it.',
+    brew: '95°C · 3–5 min',
+    note: 'Honest and direct. It asks something of you and gives something back.',
+    tryDifferently: 'A proper splash of whole milk and a spoon of honey turns it into something nurturing and full. Sweetened with monk fruit it stays bold without heaviness. Over ice with a slice of lemon it transforms into something bright and summery.',
+    moods: ['grounded','electric','fierce','awakening','reckoning']
+  },
+  greenrooibos: {
+    id: 'greenrooibos',
+    name: 'Green Rooibos',
+    family: 'Tisane',
+    familyTag: 'Tisane · Rooibos',
+    origin: 'South Africa — unoxidised rooibos, lighter than its red counterpart',
+    flavour: 'Delicate, grassy, faintly sweet with a honey-like finish. Caffeine-free.',
+    brew: '95°C · 4–5 min',
+    note: 'Lighter and more subtle than red rooibos — a quiet, caffeine-free companion for any time of day.',
+    tryDifferently: 'Cold brew overnight for an exceptionally smooth, naturally sweet cup. A little honey makes it feel like liquid sunlight. With oat milk it becomes a gentle, comforting latte.',
+    moods: ['tender','flowing','searching','joyful','introspective']
+  },
+  rooiboschai: {
+    id: 'rooiboschai',
+    name: 'Rooibos Chai',
+    family: 'Tisane',
+    familyTag: 'Tisane · Spiced',
+    origin: 'South African rooibos blended with chai spices — cinnamon, cardamom, ginger, clove',
+    flavour: 'Warm, spiced, sweet, and grounding. Caffeine-free and deeply comforting.',
+    brew: '95°C · 5 min',
+    note: 'This is a hug in a cup. The spices do what spices do — they make everything feel a little more okay.',
+    tryDifferently: 'Brewed strong and topped with warm oat milk and a spoon of honey, it becomes a proper chai latte without the caffeine. Sweetened with stevia and served iced, it is surprisingly refreshing. Add a pinch of black pepper for extra warmth on cold days.',
+    moods: ['grounded','tender','joyful','solemn','flowing']
+  },
+  fruittisane: {
+    id: 'fruittisane',
+    name: 'Fruit Tisane',
+    family: 'Tisane',
+    familyTag: 'Tisane · Fruit',
+    origin: 'Blends of dried fruits, flowers, and herbs — hibiscus, berries, rose hip, apple',
+    flavour: 'Bright, tart, and colourful. Hibiscus-based blends are jewel-red and tangy.',
+    brew: '95°C · 5–7 min',
+    note: 'Cheerful and uncomplicated. The tea equivalent of a good mood.',
+    tryDifferently: 'Iced with a slice of orange or lemon it becomes something entirely different — vivid, summery, refreshing. Sweetened with a little honey the tartness softens into something almost cordial-like. Try a warm cup with a drop of monk fruit sweetener before bed.',
+    moods: ['joyful','playful','expansive','awakening','electric']
+  },
+  chamomile: {
+    id: 'chamomile',
+    name: 'Chamomile Tisane',
+    family: 'Tisane',
+    familyTag: 'Tisane · Floral',
+    origin: 'Dried chamomile flowers — grown across Europe and North Africa',
+    flavour: 'Soft, apple-like, faintly honey-sweet. The gentlest of teas.',
+    brew: '95°C · 5 min',
+    note: 'The tea that gives you permission to slow down. It does not rush. Neither should you.',
+    tryDifferently: 'A spoon of honey makes it feel like a remedy. With warm oat milk it becomes almost dessert — soft and soporific in the best way. A slice of fresh ginger in the cup adds warmth and a little brightness without disturbing the calm.',
+    moods: ['introspective','suspended','melancholic','tender','liminal']
+  },
+  othertisane: {
+    id: 'othertisane',
+    name: 'Other Tisane',
+    family: 'Tisane',
+    familyTag: 'Tisane · Herbal',
+    origin: 'Peppermint, lavender, lemon verbena, lemon balm, hibiscus, and beyond',
+    flavour: 'As varied as the garden — cooling mint, calming lavender, bright lemon verbena.',
+    brew: '95°C · 4–6 min',
+    note: 'Whatever is in your cup, it was chosen for a reason. Trust that.',
+    tryDifferently: 'Peppermint is beautiful iced. Lavender with a touch of honey is deeply calming. Lemon verbena cold-brewed overnight is bright and almost sparkling. Let the herb guide you — most tisanes surprise you when you try them differently.',
+    moods: ['flowing','searching','playful','fated','tender']
+  }
+};
+
+// Ordered list for the cupboard UI
+const teaOrder = [
+  'earlgrey','morningblend','sencha','matcha','jasmine',
+  'genmaicha','hojicha','oolong','greenrooibos','rooiboschai',
+  'fruittisane','chamomile','othertisane'
+];
+
+// ─────────────────────────────────────────────
+// ARCANA — teas now reference teaLibrary ids
+// ─────────────────────────────────────────────
+const arcana = {
+  fool: {
+    number: "The · 0", name: "The Fool", subtitle: "The luminous beginning", symbol: "○",
+    archetype: "He steps off the cliff with a flower in his hand and no map. His dog leaps with him. This is not recklessness. This is faith.",
+    body: "The Fool is the card of pure beginnings — before experience accumulates, before the path gets worn in. Your music is in that open, not-yet-knowing place. Wonderful.",
+    teas: ['jasmine','fruittisane','oolong'],
+    tracks: [
+      { title: "Naive", artist: "The Kooks" },
+      { title: "Budapest", artist: "George Ezra" },
+      { title: "Two of Us", artist: "The Beatles" },
+      { title: "I Will Follow You Into the Dark", artist: "Death Cab for Cutie" }
+    ],
+    ritual: "Pick one track you've never heard before and play it alongside the tea. The Fool always starts with something new."
+  },
+  magician: {
+    number: "The · I", name: "The Magician", subtitle: "Will made manifest", symbol: "☿",
+    archetype: "All elements at the table, one hand raised to heaven, one to earth. Power running clean through a clear channel.",
+    body: "The Magician is pure agency — the moment before creation when all possibility is still live. Your music is at a high voltage right now. Use it.",
+    teas: ['matcha','sencha','earlgrey'],
+    tracks: [
+      { title: "Baba O'Riley", artist: "The Who" },
+      { title: "Mr. Brightside", artist: "The Killers" },
+      { title: "Power", artist: "Kanye West" },
+      { title: "Heads Will Roll", artist: "Yeah Yeah Yeahs" }
+    ],
+    ritual: "Set one clear intention before the first track plays. Write it on paper. Just one sentence."
+  },
+  highpriestess: {
+    number: "The · II", name: "The High Priestess", subtitle: "Keeper of hidden knowledge", symbol: "☽",
+    archetype: "She sits between the pillars — neither moving toward nor away. She offers no answers, only the space to find your own.",
+    body: "This card speaks to the interior life. The music pulling you inward right now is doing so for a reason. Trust the silence between the notes. Not everything needs to be understood.",
+    teas: ['chamomile','greenrooibos','oolong'],
+    tracks: [
+      { title: "On the Nature of Daylight", artist: "Max Richter" },
+      { title: "Gymnopédie No.1", artist: "Erik Satie" },
+      { title: "Experience", artist: "Ludovico Einaudi" },
+      { title: "Comptine d'un autre été", artist: "Yann Tiersen" }
+    ],
+    ritual: "Brew the tea before pressing play. Hold the cup with both hands. Let the first three minutes pass without looking at your phone."
+  },
+  empress: {
+    number: "The · III", name: "The Empress", subtitle: "Abundance without apology", symbol: "♀",
+    archetype: "She is the field in full flower. She does not justify her richness. She simply is.",
+    body: "The Empress is sensory, full, overflowing. Your music right now is lush — it wants to be felt, not analysed. Let it fill the room. Let it fill you.",
+    teas: ['jasmine','rooiboschai','earlgrey'],
+    tracks: [
+      { title: "Green Eyes", artist: "Coldplay" },
+      { title: "Be My Husband", artist: "Nina Simone" },
+      { title: "Lover", artist: "Taylor Swift" },
+      { title: "Bloom", artist: "The Paper Kites" }
+    ],
+    ritual: "Brew more than you think you need. Drink it somewhere comfortable. This is not a tea for your desk."
+  },
+  emperor: {
+    number: "The · IV", name: "The Emperor", subtitle: "The weight of structure", symbol: "♂",
+    archetype: "The throne is stone. The mountains don't move. There is a cost to holding things in order — and he pays it.",
+    body: "Solemnity is not sadness — it is the taking-seriously of things that matter. Your music carries that gravity. There is something here that deserves your full attention.",
+    teas: ['morningblend','earlgrey','hojicha'],
+    tracks: [
+      { title: "Clair de Lune", artist: "Claude Debussy" },
+      { title: "Adagio for Strings", artist: "Samuel Barber" },
+      { title: "How to Disappear Completely", artist: "Radiohead" },
+      { title: "The Becoming", artist: "Nine Inch Nails" }
+    ],
+    ritual: "Silence your phone. Close unnecessary tabs. This music and this tea deserve a clean space."
+  },
+  hierophant: {
+    number: "The · V", name: "The Hierophant", subtitle: "Root and tradition", symbol: "♁",
+    archetype: "The wisdom passed down through hands, through soil, through the daily act of returning.",
+    body: "This card honours what has been built over time. Your music has roots — it reaches for something solid, something proven. That is not conservatism; it is faith in continuity.",
+    teas: ['genmaicha','morningblend','rooiboschai'],
+    tracks: [
+      { title: "The Wood Song", artist: "Indigo Girls" },
+      { title: "Holocene", artist: "Bon Iver" },
+      { title: "In the Aeroplane Over the Sea", artist: "Neutral Milk Hotel" },
+      { title: "Dirt", artist: "Bahamas" }
+    ],
+    ritual: "Before you sip, name one thing you are grateful to have inherited — from a person, a place, a practice."
+  },
+  lovers: {
+    number: "The · VI", name: "The Lovers", subtitle: "The vulnerable meeting", symbol: "♡",
+    archetype: "Not only romance — but the moment of choosing another, and in doing so, choosing yourself.",
+    body: "This card lives in the heart's most exposed places. Your music is soft-focused right now, oriented toward something or someone. Let the tenderness be real.",
+    teas: ['jasmine','greenrooibos','chamomile'],
+    tracks: [
+      { title: "First Day of My Life", artist: "Bright Eyes" },
+      { title: "To Be Alone With You", artist: "Sufjan Stevens" },
+      { title: "Such Great Heights", artist: "The Postal Service" },
+      { title: "Bloom", artist: "The Paper Kites" }
+    ],
+    ritual: "Think of who or what you would share this cup with. Then brew as if they were present."
+  },
+  chariot: {
+    number: "The · VII", name: "The Chariot", subtitle: "Directed will, forward motion", symbol: "⊙",
+    archetype: "Two opposing forces harnessed — not suppressed, but aimed. He does not eliminate contradiction. He drives through it.",
+    body: "The Chariot is motion with purpose. Your music has direction right now — there's momentum in it, even if you can't name the destination. Trust the forward pull.",
+    teas: ['morningblend','matcha','sencha'],
+    tracks: [
+      { title: "Run Boy Run", artist: "Woodkid" },
+      { title: "No Church in the Wild", artist: "Jay-Z & Kanye West" },
+      { title: "Seven Nation Army", artist: "The White Stripes" },
+      { title: "Eye of the Tiger", artist: "Survivor" }
+    ],
+    ritual: "Drink the first cup standing. Let the music move through you before you sit."
+  },
+  strength: {
+    number: "The · VIII", name: "Strength", subtitle: "Power without force", symbol: "♌",
+    archetype: "She opens the lion's mouth with bare hands — not through dominance, but through a love too steady to be refused.",
+    body: "True strength in this card is radically gentle. Your music is fierce but not brittle. There is a core in it that does not need to prove itself.",
+    teas: ['morningblend','earlgrey','matcha'],
+    tracks: [
+      { title: "Immigrant Song", artist: "Led Zeppelin" },
+      { title: "Runaway", artist: "Kanye West" },
+      { title: "TYRANT", artist: "Rosalía" },
+      { title: "Mother", artist: "Pink Floyd" }
+    ],
+    ritual: "Drink the whole cup before starting the second track. Do not rush it."
+  },
+  hermit: {
+    number: "The · IX", name: "The Hermit", subtitle: "Solitary lantern", symbol: "△",
+    archetype: "He climbed the mountain not to escape, but to see clearly. The lantern is for others, eventually. For now it lights only the next step.",
+    body: "The Hermit chooses solitude deliberately — it is not isolation, it is refinement. Your music is a kind of turning inward, a careful reduction. Stay with it.",
+    teas: ['chamomile','genmaicha','othertisane'],
+    tracks: [
+      { title: "Casimir Pulaski Day", artist: "Sufjan Stevens" },
+      { title: "Pink Moon", artist: "Nick Drake" },
+      { title: "Skinny Love", artist: "Bon Iver" },
+      { title: "The Night Will Always Win", artist: "Manchester Orchestra" }
+    ],
+    ritual: "Brew the tea in silence — no music yet. Only when the cup is in your hands should you press play. Begin with the quietest track."
+  },
+  wheeloffortune: {
+    number: "The · X", name: "Wheel of Fortune", subtitle: "Surrender to the turning", symbol: "⊗",
+    archetype: "The wheel does not ask permission. Sphinx at the top, serpent going down, Anubis on the way back up. The cycle does not care who you are.",
+    body: "Your music is tapping into something larger than the moment — a sense of time, of cycles, of things that return. The Wheel is not about control. It's about knowing when to let go.",
+    teas: ['oolong','othertisane','hojicha'],
+    tracks: [
+      { title: "Karma Police", artist: "Radiohead" },
+      { title: "The Times They Are A-Changin'", artist: "Bob Dylan" },
+      { title: "Retrograde", artist: "James Blake" },
+      { title: "The Four Seasons — Spring", artist: "Vivaldi" }
+    ],
+    ritual: "Let the playlist shuffle. Relinquish the queue. Whatever plays next is what plays next."
+  },
+  justice: {
+    number: "The · XI", name: "Justice", subtitle: "Clarity and consequence", symbol: "⚖",
+    archetype: "The scales do not lie. She does not punish — she simply reveals what was always true.",
+    body: "Justice is not punishment; it's precision. Your music right now has a clear-eyed quality — it is naming things. Something is being weighed, and you already know the answer.",
+    teas: ['sencha','earlgrey','greenrooibos'],
+    tracks: [
+      { title: "Like a Stone", artist: "Audioslave" },
+      { title: "Strange Fruit", artist: "Billie Holiday" },
+      { title: "Man in the Mirror", artist: "Michael Jackson" },
+      { title: "The Reckoning", artist: "Need to Breathe" }
+    ],
+    ritual: "Before the first track, name one thing you have been avoiding knowing. You don't have to act on it. Just let it be true."
+  },
+  hangedman: {
+    number: "The · XII", name: "The Hanged Man", subtitle: "Voluntary suspension", symbol: "⊥",
+    archetype: "He chose this. The halo says so. He gave something up in order to see differently — and the world, inverted, makes a strange new sense.",
+    body: "The Hanged Man is not stuck — he is waiting on purpose. Your music has that quality of pause, of something held back. This is not stagnation. This is strategic stillness.",
+    teas: ['chamomile','hojicha','othertisane'],
+    tracks: [
+      { title: "Motion Picture Soundtrack", artist: "Radiohead" },
+      { title: "Naked as We Came", artist: "Iron & Wine" },
+      { title: "Comptine d'un autre été", artist: "Yann Tiersen" },
+      { title: "Re: Stacks", artist: "Bon Iver" }
+    ],
+    ritual: "Brew the tea. Don't press play immediately. Sit with the silence for two minutes. Then begin."
+  },
+  death: {
+    number: "The · XIII", name: "Death", subtitle: "The necessary ending", symbol: "⚳",
+    archetype: "Not an ending, but a crossing. Something is releasing — and that is its own kind of grace.",
+    body: "Death in Tarot is never about loss alone. It's the card of transformation, of what must be shed so that something true can emerge. Your music knows this already.",
+    teas: ['hojicha','genmaicha','chamomile'],
+    tracks: [
+      { title: "Death With Dignity", artist: "Sufjan Stevens" },
+      { title: "Motion Picture Soundtrack", artist: "Radiohead" },
+      { title: "Re: Stacks", artist: "Bon Iver" },
+      { title: "The Night Will Always Win", artist: "Manchester Orchestra" }
+    ],
+    ritual: "Brew a second cup after you finish the first. The second steeping is always more honest than the first."
+  },
+  temperance: {
+    number: "The · XIV", name: "Temperance", subtitle: "Patient alchemy", symbol: "△▽",
+    archetype: "She pours between two cups — water into fire, fire into water — and neither is destroyed. This is integration, not compromise.",
+    body: "Temperance is the card of the long blend — things being slowly brought into harmony. Your music has that quality: different elements that shouldn't work together, and yet. Let it breathe.",
+    teas: ['rooiboschai','oolong','greenrooibos'],
+    tracks: [
+      { title: "Blue Ridge Mountains", artist: "Fleet Foxes" },
+      { title: "Such Great Heights", artist: "The Postal Service" },
+      { title: "Let It Be", artist: "The Beatles" },
+      { title: "Lua", artist: "Bright Eyes" }
+    ],
+    ritual: "Add something you don't usually add to your tea — a slice of ginger, a drop of honey, a squeeze of citrus. A small act of alchemy."
+  },
+  devil: {
+    number: "The · XV", name: "The Devil", subtitle: "The beautiful trap", symbol: "♄",
+    archetype: "The chains around their necks are loose enough to remove. They stay by choice. The Devil does not hold you — your own desire does.",
+    body: "This card does not shame. It witnesses. Your music is circling something seductive and complex — a loop, a pattern, something you keep returning to. The question isn't whether to leave. It's whether you want to.",
+    teas: ['earlgrey','hojicha','othertisane'],
+    tracks: [
+      { title: "Sinner Man", artist: "Nina Simone" },
+      { title: "Everybody Wants to Rule the World", artist: "Tears for Fears" },
+      { title: "Bad Guy", artist: "Billie Eilish" },
+      { title: "Dark Horse", artist: "Katy Perry" }
+    ],
+    ritual: "Drink the tea slowly. Notice every sip. Notice what you keep returning to in the music. No judgment — just noticing."
+  },
+  star: {
+    number: "The · XVII", name: "The Star", subtitle: "Hope at the water's edge", symbol: "★",
+    archetype: "She pours endlessly into both water and land — giving without depletion, trusting in renewal.",
+    body: "The Star comes after ruin. It is the card of guided navigation, of following the faint light that hasn't gone out. Your music is reaching for something. It will find it.",
+    teas: ['jasmine','greenrooibos','chamomile'],
+    tracks: [
+      { title: "Lua", artist: "Bright Eyes" },
+      { title: "Blue Ridge Mountains", artist: "Fleet Foxes" },
+      { title: "Naked as We Came", artist: "Iron & Wine" },
+      { title: "Casimir Pulaski Day", artist: "Sufjan Stevens" }
+    ],
+    ritual: "Let the playlist run past the songs you know. Leave room for discovery. The Star always points somewhere you haven't been."
+  },
+  moon: {
+    number: "The · XVIII", name: "The Moon", subtitle: "The uncertain crossing", symbol: "☾",
+    archetype: "The path goes forward in thin light. The dogs howl. The water reflects something that isn't quite the sky.",
+    body: "The Moon governs everything in-between: the threshold, the dream, the not-yet-resolved. Your music is living in that space right now — half-familiar, slightly strange. That's the right territory.",
+    teas: ['chamomile','oolong','othertisane'],
+    tracks: [
+      { title: "Weird Fishes / Arpeggi", artist: "Radiohead" },
+      { title: "Woods", artist: "Bon Iver" },
+      { title: "Skinny Love", artist: "Bon Iver" },
+      { title: "Possibility", artist: "Lykke Li" }
+    ],
+    ritual: "Brew the tea in dim light. Stay with the discomfort of not-knowing. The Moon rewards those who don't reach for the light switch."
+  },
+  sun: {
+    number: "The · XIX", name: "The Sun", subtitle: "Radiant becoming", symbol: "☉",
+    archetype: "Uncomplicated joy. The rarest of things — a moment that asks nothing in return.",
+    body: "The Sun is the card of full presence, of stepping into the open. Your playlist right now is the sound of something opening. Let it.",
+    teas: ['fruittisane','sencha','jasmine'],
+    tracks: [
+      { title: "Here Comes the Sun", artist: "The Beatles" },
+      { title: "Golden Hour", artist: "KACEY MUSGRAVES" },
+      { title: "Dog Days Are Over", artist: "Florence + the Machine" },
+      { title: "Good as Hell", artist: "Lizzo" }
+    ],
+    ritual: "Take your cup outside if you can, or at least to a window. Drink it standing. The Sun doesn't sit still."
+  },
+  judgement: {
+    number: "The · XX", name: "Judgement", subtitle: "Rising after long silence", symbol: "△",
+    archetype: "The angel blows the horn and the risen do not look frightened. They look relieved. They had been waiting for permission to come back.",
+    body: "Judgement is not verdict — it's awakening. Something in you is rising that has been buried. Your music feels like that: something returning from far away. Let it be welcomed.",
+    teas: ['matcha','morningblend','fruittisane'],
+    tracks: [
+      { title: "Shake It Out", artist: "Florence + the Machine" },
+      { title: "Dog Days Are Over", artist: "Florence + the Machine" },
+      { title: "Clocks", artist: "Coldplay" },
+      { title: "The Sound of Silence", artist: "Simon & Garfunkel" }
+    ],
+    ritual: "Write down one thing you are ready to stop carrying. You don't have to do anything with it. Just name it."
+  },
+  world: {
+    number: "The · XXI", name: "The World", subtitle: "The completed circle", symbol: "⊕",
+    archetype: "She dances in the laurel wreath. She has been all four corners and returned. She is dancing.",
+    body: "The World is wholeness, arrival, the satisfaction of full presence. Your music is celebrating something — even if you can't name it. Let it.",
+    teas: ['rooiboschai','fruittisane','jasmine'],
+    tracks: [
+      { title: "September", artist: "Earth, Wind & Fire" },
+      { title: "Dancing Queen", artist: "ABBA" },
+      { title: "Can't Stop the Feeling", artist: "Justin Timberlake" },
+      { title: "Good as Hell", artist: "Lizzo" }
+    ],
+    ritual: "Brew a second infusion the moment the first is done. This tea gives more each time. So do you."
+  }
+};
+
+// ─────────────────────────────────────────────
+// MOOD DATA & GRID
+// ─────────────────────────────────────────────
+const allMoods = [
+  { mood: 'introspective', icon: '🌙' },
+  { mood: 'melancholic',   icon: '🌧' },
+  { mood: 'expansive',     icon: '☀️' },
+  { mood: 'grounded',      icon: '🌿' },
+  { mood: 'electric',      icon: '⚡' },
+  { mood: 'tender',        icon: '🌸' },
+  { mood: 'searching',     icon: '🔭' },
+  { mood: 'fierce',        icon: '🔥' },
+  { mood: 'liminal',       icon: '🌫' },
+  { mood: 'joyful',        icon: '✨' },
+  { mood: 'solemn',        icon: '🕯' },
+  { mood: 'playful',       icon: '🎈' },
+  { mood: 'reckoning',     icon: '⚖️' },
+  { mood: 'suspended',     icon: '🫧' },
+  { mood: 'fated',         icon: '🎲' },
+  { mood: 'shadowed',      icon: '🌑' },
+  { mood: 'flowing',       icon: '🌊' },
+  { mood: 'awakening',     icon: '🌅' }
+];
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildMoodGrid(preserveSelected) {
+  const grid = document.getElementById('moodGrid');
+  const shuffled = shuffleArray(allMoods);
+  grid.innerHTML = '';
+  shuffled.forEach(({ mood, icon }) => {
+    const btn = document.createElement('button');
+    btn.className = 'mood-btn' + (preserveSelected && selectedMood === mood ? ' selected' : '');
+    btn.dataset.mood = mood;
+    btn.onclick = () => selectMood(btn);
+    btn.innerHTML = `<span class="mood-icon">${icon}</span>${mood}`;
+    grid.appendChild(btn);
+  });
+}
+
+function shuffleMoods() {
+  const btn = document.querySelector('.shuffle-moods-btn');
+  btn.classList.add('spinning');
+  setTimeout(() => btn.classList.remove('spinning'), 500);
+  buildMoodGrid(true);
+}
+
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+const intentionQuestions = [
+  "What would it feel like to be gentle with yourself today?",
+  "Is there something you've been carrying that you could set down, just for these ten minutes?",
+  "What does rest look like for you right now — not sleep, but real rest?",
+  "Is there a feeling you've been avoiding that might just need a moment of your attention?",
+  "What would you say to a dear friend who was feeling exactly as you feel today?",
+  "What does your body need that your mind keeps overriding?",
+  "If this moment asked nothing of you, what would you do with it?",
+  "Is there someone — including yourself — you could offer a little more patience to today?",
+  "What small thing has been quietly bringing you joy that you haven't fully acknowledged?",
+  "What would it mean to trust yourself a little more today?",
+  "Is there a worry you could hold more loosely, just for now?",
+  "What does it feel like when you are truly, quietly at peace?",
+  "What part of you is asking to be seen today?",
+  "If you let yourself want what you actually want, what would that be?",
+  "What would today look like if you moved at your own pace?",
+  "Is there something beautiful around you right now that you haven't let yourself notice?",
+  "What would you do differently if you knew you were allowed to?",
+  "Who do you want to be in the moments no one is watching?",
+  "What are you in the middle of becoming?",
+  "What would it feel like to stop explaining yourself, just for today?"
+];
+
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+const moodRoutes = {
+  electric:    { type: 'direct', card: 'magician' },
+  tender:      { type: 'direct', card: 'lovers' },
+  fierce:      { type: 'direct', card: 'strength' },
+  liminal:     { type: 'direct', card: 'moon' },
+  solemn:      { type: 'direct', card: 'emperor' },
+  playful:     { type: 'direct', card: 'fool' },
+  reckoning:   { type: 'direct', card: 'justice' },
+  suspended:   { type: 'direct', card: 'hangedman' },
+  fated:       { type: 'direct', card: 'wheeloffortune' },
+  shadowed:    { type: 'direct', card: 'devil' },
+  flowing:     { type: 'direct', card: 'temperance' },
+  awakening:   { type: 'direct', card: 'judgement' },
+  introspective: {
+    type: 'branch',
+    question: "There's something quietly beautiful about turning inward. What does that feel like for you right now?",
+    options: [
+      { label: "Peaceful. I'm not looking for anything in particular — I just want to be still for a while.", card: 'hermit' },
+      { label: "Open. There's something stirring beneath the surface that I haven't quite found words for yet.", card: 'highpriestess' }
+    ]
+  },
+  melancholic: {
+    type: 'branch',
+    question: "It's okay to sit with heaviness. Can you tell me a little more about what it feels like?",
+    options: [
+      { label: "Like something is completing itself. A gentle release — bittersweet, but right.", card: 'death' },
+      { label: "Like I'm between chapters. Not quite the old thing, not yet the new.", card: 'hangedman' }
+    ]
+  },
+  expansive: {
+    type: 'branch',
+    question: "That openness is a gift. What's filling you up right now?",
+    options: [
+      { label: "Simple joy. The uncomplicated kind that doesn't need a reason.", card: 'sun' },
+      { label: "A quiet richness — like something is overflowing and I want to let it.", card: 'empress' }
+    ]
+  },
+  grounded: {
+    type: 'branch',
+    question: "That feeling of groundedness is worth honouring. Where do you feel it coming from?",
+    options: [
+      { label: "From something older than me — roots, lineage, the comfort of what's been passed down.", card: 'hierophant' },
+      { label: "From myself. A steadiness I've worked for, that belongs to me now.", card: 'chariot' }
+    ]
+  },
+  searching: {
+    type: 'branch',
+    question: "Searching is its own kind of courage. What does yours feel like today?",
+    options: [
+      { label: "Hopeful. Something difficult is behind me, and there's a small light I'm moving toward.", card: 'star' },
+      { label: "Tender and uncertain. I'd rather sit with the question than rush toward an answer.", card: 'highpriestess' }
+    ]
+  },
+  joyful: {
+    type: 'branch',
+    question: "How lovely. What kind of joy is this?",
+    options: [
+      { label: "The kind that feels like arrival — full and complete, like I've earned this moment.", card: 'world' },
+      { label: "The kind that feels like a door opening — bright, fresh, full of what comes next.", card: 'sun' }
+    ]
+  }
+};
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let selectedMood = null;
+let selectedCard = null;
+let currentTeaIndex = 0;
+let cupboardTeas = new Set();
+let cupboardSaved = false;
+let teaDetailOpen = false;
+let currentIntention = '';
+
+// ─────────────────────────────────────────────
+// STEP 0: Intention
+// ─────────────────────────────────────────────
+function initIntention() {
+  const q = intentionQuestions[Math.floor(Math.random() * intentionQuestions.length)];
+  currentIntention = q;
+  document.getElementById('intentionQuestion').textContent = q;
+}
+
+function onIntentionContinue() {
+  document.getElementById('step0').style.opacity = '0.3';
+  document.getElementById('step0').style.pointerEvents = 'none';
+  const s1 = document.getElementById('step1');
+  s1.classList.remove('hidden');
+  buildMoodGrid(false);
+  s1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Init on load
+initIntention();
+
+// ─────────────────────────────────────────────
+// STEP 1
+// ─────────────────────────────────────────────
+function selectMood(btn) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedMood = btn.dataset.mood;
+  document.getElementById('revealBtn1').disabled = false;
+}
+
+function onMoodConfirm() {
+  if (!selectedMood) return;
+  const route = moodRoutes[selectedMood];
+  if (route.type === 'direct') {
+    selectedCard = route.card;
+    showResult();
+  } else {
+    showFollowup(route);
+  }
+}
+
+// ─────────────────────────────────────────────
+// STEP 2
+// ─────────────────────────────────────────────
+function showFollowup(route) {
+  document.getElementById('step1').style.opacity = '0.3';
+  document.getElementById('step1').style.pointerEvents = 'none';
+  document.getElementById('followupQuestion').textContent = route.question;
+  const container = document.getElementById('followupOptions');
+  container.innerHTML = '';
+  route.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'followup-btn';
+    btn.textContent = opt.label;
+    btn.onclick = () => selectFollowup(btn, opt.card);
+    container.appendChild(btn);
+  });
+  const s2 = document.getElementById('step2');
+  s2.classList.remove('hidden');
+  s2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function selectFollowup(btn, card) {
+  document.querySelectorAll('.followup-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedCard = card;
+  document.getElementById('revealBtn2').disabled = false;
+}
+
+function onFollowupConfirm() {
+  if (!selectedCard) return;
+  showResult();
+}
+
+// ─────────────────────────────────────────────
+// RESULT
+// ─────────────────────────────────────────────
+function showResult() {
+  ['step1','step2'].forEach(id => {
+    const el = document.getElementById(id);
+    el.style.opacity = '0.3';
+    el.style.pointerEvents = 'none';
+  });
+  const result = document.getElementById('result');
+  result.classList.add('visible');
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const p = arcana[selectedCard];
+  currentTeaIndex = Math.floor(Math.random() * p.teas.length);
+  setTimeout(() => renderResult(p), 1400);
+}
+
+function renderResult(p) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('cardSymbol').textContent = p.symbol;
+  document.getElementById('cardNumber').textContent = p.number;
+  document.getElementById('cardName').textContent = p.name;
+  document.getElementById('cardSubtitle').textContent = p.subtitle;
+  document.getElementById('archetypeText').textContent = p.archetype;
+  document.getElementById('cardBody').textContent = p.body;
+  document.getElementById('ritualText').textContent = p.ritual;
+
+  // Show intention carried forward
+  if (currentIntention) {
+    document.getElementById('intentionCarriedText').textContent = currentIntention;
+    document.getElementById('intentionCarried').style.display = 'block';
+  }
+
+  renderTea(p);
+  buildCupboardGrid();
+
+  const pl = document.getElementById('playlist');
+  pl.innerHTML = '';
+  p.tracks.forEach(t => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${t.title}</span><span class="track-artist">${t.artist}</span>`;
+    pl.appendChild(li);
+  });
+
+  document.getElementById('resultContent').style.display = 'block';
+}
+
+// ─────────────────────────────────────────────
+// TEA RENDERING
+// ─────────────────────────────────────────────
+function renderTea(p) {
+  const teaId = p.teas[currentTeaIndex];
+  const tea = teaLibrary[teaId];
+  document.getElementById('teaFamily').textContent = tea.familyTag;
+  document.getElementById('teaName').textContent = tea.name;
+  document.getElementById('teaNote').textContent = tea.note;
+  document.getElementById('teaOrigin').textContent = tea.origin;
+  document.getElementById('teaFlavour').textContent = tea.flavour;
+  document.getElementById('teaBrew').textContent = tea.brew;
+  document.getElementById('teaTryDifferently').textContent = tea.tryDifferently;
+
+  // Reset expand state
+  teaDetailOpen = false;
+  document.getElementById('teaDetail').classList.remove('visible');
+  document.getElementById('teaExpandIcon').classList.remove('open');
+
+  // Check cupboard match
+  if (cupboardSaved && cupboardTeas.size > 0) {
+    updateCupboardMatchNote(p);
+  }
+}
+
+function shuffleTea() {
+  const p = arcana[selectedCard];
+  let next = currentTeaIndex;
+  while (next === currentTeaIndex && p.teas.length > 1) {
+    next = Math.floor(Math.random() * p.teas.length);
+  }
+  currentTeaIndex = next;
+  const block = document.getElementById('teaBlock');
+  block.classList.add('fading');
+  setTimeout(() => { renderTea(p); block.classList.remove('fading'); }, 250);
+}
+
+function toggleTeaDetail() {
+  teaDetailOpen = !teaDetailOpen;
+  const detail = document.getElementById('teaDetail');
+  const icon = document.getElementById('teaExpandIcon');
+  const btn = document.getElementById('teaExpandBtn');
+  detail.classList.toggle('visible', teaDetailOpen);
+  icon.classList.toggle('open', teaDetailOpen);
+  btn.querySelector('.tea-expand-icon').textContent = teaDetailOpen ? '▾' : '▾';
+}
+
+// ─────────────────────────────────────────────
+// CUPBOARD
+// ─────────────────────────────────────────────
+function buildCupboardGrid() {
+  const grid = document.getElementById('cupboardGrid');
+  grid.innerHTML = '';
+  teaOrder.forEach(id => {
+    const tea = teaLibrary[id];
+    const item = document.createElement('div');
+    item.className = 'cupboard-item';
+    const checked = cupboardTeas.has(id) ? 'checked' : '';
+    item.innerHTML = `
+      <input type="checkbox" id="cb_${id}" ${checked} onchange="toggleCupboardTea('${id}')">
+      <label for="cb_${id}">${tea.name}</label>
+    `;
+    grid.appendChild(item);
+  });
+}
+
+function toggleCupboardTea(id) {
+  if (cupboardTeas.has(id)) {
+    cupboardTeas.delete(id);
+  } else {
+    cupboardTeas.add(id);
+  }
+}
+
+function toggleCupboard() {
+  const panel = document.getElementById('cupboardPanel');
+  panel.classList.toggle('visible');
+}
+
+function saveCupboard() {
+  cupboardSaved = true;
+  document.getElementById('cupboardPanel').classList.remove('visible');
+  updateCupboardMatchNote(arcana[selectedCard]);
+}
+
+function updateCupboardMatchNote(p) {
+  const note = document.getElementById('cupboardMatchNote');
+  if (!cupboardSaved || cupboardTeas.size === 0) { note.style.display = 'none'; return; }
+
+  const cardTeas = p.teas.map(id => teaLibrary[id]);
+  const matches = cardTeas.filter(t => cupboardTeas.has(t.id));
+
+  if (matches.length === 0) {
+    note.textContent = "None of your teas are a direct match today — but any warm cup you love will do beautifully.";
+  } else if (matches.length === 1) {
+    note.textContent = `You have ${matches[0].name} at home — that's a lovely match for today's card.`;
+  } else {
+    const names = matches.map(t => t.name).join(' or ');
+    note.textContent = `You have a few good matches in your cupboard: ${names}. Any of them would be wonderful today.`;
+  }
+  note.style.display = 'block';
+}
+
+// ─────────────────────────────────────────────
+// RESET
+// ─────────────────────────────────────────────
+function reset() {
+  selectedMood = null;
+  selectedCard = null;
+  currentTeaIndex = 0;
+  cupboardSaved = false;
+  teaDetailOpen = false;
+  currentIntention = '';
+
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('revealBtn1').disabled = true;
+
+  // Reset step0
+  const s0 = document.getElementById('step0');
+  s0.style.opacity = '1';
+  s0.style.pointerEvents = 'all';
+  initIntention();
+
+  const s1 = document.getElementById('step1');
+  s1.classList.add('hidden');
+  s1.style.opacity = '1';
+  s1.style.pointerEvents = 'all';
+  buildMoodGrid(false);
+
+  const s2 = document.getElementById('step2');
+  s2.classList.add('hidden');
+  s2.style.opacity = '1';
+  s2.style.pointerEvents = 'all';
+  document.getElementById('revealBtn2').disabled = true;
+
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('resultContent').style.display = 'none';
+  document.getElementById('cupboardMatchNote').style.display = 'none';
+  document.getElementById('cupboardPanel').classList.remove('visible');
+  document.getElementById('intentionCarried').style.display = 'none';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
