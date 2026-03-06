@@ -779,8 +779,19 @@
   }
 
   /* Playlist */
-  .playlist-list { list-style: none; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-  .playlist-list li { border: none; padding: 0; }
+  .playlist-list { list-style: none; margin-top: 0.5rem; }
+
+  .playlist-list li {
+    font-size: 0.82rem;
+    font-weight: 300;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .playlist-list li:last-child { border-bottom: none; }
   .track-artist { color: var(--muted); font-size: 0.72rem; margin-left: 1rem; text-align: right; font-style: italic; }
 
   /* Ritual */
@@ -2834,19 +2845,8 @@ function renderResult(p) {
   const pl = document.getElementById('playlist');
   pl.innerHTML = '';
   p.tracks.forEach(tr => {
-    const id = spotifyIds[`${tr.title}|||${tr.artist}`];
     const li = document.createElement('li');
-    li.style.cssText = 'border:none; padding:0.4rem 0;';
-    if (id) {
-      li.innerHTML = `<iframe
-        src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0"
-        width="100%" height="80" frameBorder="0"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy" style="border-radius:8px; display:block;">
-      </iframe>`;
-    } else {
-      li.innerHTML = `<span>${tr.title}</span><span class="track-artist">${tr.artist}</span>`;
-    }
+    li.innerHTML = `<span>${tr.title}</span><span class="track-artist">${tr.artist}</span>`;
     pl.appendChild(li);
   });
 
