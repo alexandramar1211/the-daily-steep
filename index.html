@@ -326,7 +326,123 @@
   .result-section-label { font-size: 0.58rem; letter-spacing: 0.45em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 0.6rem; }
   .archetype-text { font-family: 'Roboto Serif', serif; font-size: 1rem; font-style: italic; line-height: 1.8; color: #e0f2fe; margin-bottom: 0.5rem; }
   .body-text { font-size: 0.85rem; line-height: 1.9; color: rgba(255,255,255,0.85); font-weight: 300; }
-  .symbol { font-size: 1.4rem; opacity: 0.2; position: absolute; top: 1.5rem; right: 1.5rem; font-family: serif; color: #ffffff; }
+  /* Card flip */
+  .card-flip-wrap {
+    perspective: 1000px;
+    width: 160px;
+    height: 270px;
+    margin: 0 auto 2rem;
+    cursor: pointer;
+  }
+
+  .card-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-flip-wrap.flipped .card-flip-inner {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+
+  /* Card back — decorative */
+  .card-back {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .card-back-pattern {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.03) 0px,
+      rgba(255,255,255,0.03) 1px,
+      transparent 1px,
+      transparent 12px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,0.03) 0px,
+      rgba(255,255,255,0.03) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  }
+
+  .card-back-symbol {
+    font-size: 2rem;
+    opacity: 0.4;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-back-hint {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.5rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Card front — image */
+  .card-front {
+    transform: rotateY(180deg);
+    background: rgba(0,0,0,0.3);
+  }
+
+  .card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Fallback when no image */
+  .card-front-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    opacity: 0.3;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .card-flip-tap-hint {
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.5rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 2rem;
+    transition: opacity 0.3s;
+  }
+
+  .card-flip-tap-hint.hidden { opacity: 0; }
 
   /* Tea section */
   .tea-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
@@ -681,6 +797,20 @@
   <div id="resultContent" style="display:none;">
     <div class="result-inner">
       <span class="symbol" id="cardSymbol"></span>
+
+      <!-- Card flip -->
+      <div class="card-flip-wrap" id="cardFlipWrap" onclick="flipCard()">
+        <div class="card-flip-inner" id="cardFlipInner">
+          <div class="card-face card-back">
+            <div class="card-back-pattern"></div>
+            <span class="card-back-symbol" id="cardBackSymbol">✦</span>
+          </div>
+          <div class="card-face card-front" id="cardFront">
+            <!-- image or fallback injected by JS -->
+          </div>
+        </div>
+      </div>
+      <p class="card-flip-tap-hint" id="cardFlipHint">tap to reveal</p>
       <p class="card-number" id="cardNumber"></p>
       <h2 class="card-name" id="cardName"></h2>
       <p class="card-subtitle" id="cardSubtitle"></p>
@@ -822,6 +952,7 @@ const translations = {
     sectionTea: 'Your Tea',
     anotherSteep: 'another steep',
     aboutTea: 'about this tea',
+    tapToReveal: 'tap to reveal',
     originLabel: 'Origin',
     flavourLabel: 'Flavour',
     brewLabel: 'Brew',
@@ -843,11 +974,11 @@ const translations = {
     subtitle: 'música · tarot · té',
     step0label: 'Antes de comenzar',
     intentionNote: 'Quédate con esto. No necesitas responder.',
-    intentionReady: 'Estoy lista',
-    step1label: 'Respira profundo. Comienza cuando estés lista.',
+    intentionReady: 'Estoy lista/o',
+    step1label: 'Respira profundo. Comienza cuando estés lista/o.',
     moodPrompt: '¿Cómo te sientes ahora mismo?',
     shuffleBtn: 'mezclar',
-    thisFeelsRight: 'Así me siento',
+    thisFeelsRight: 'Esto resuena',
     step2label: 'Una pregunta más, con calma.',
     revealCard: 'Revelar mi carta',
     loading: 'Preparando tu lectura',
@@ -855,6 +986,7 @@ const translations = {
     sectionTea: 'Tu té',
     anotherSteep: 'otro té',
     aboutTea: 'sobre este té',
+    tapToReveal: 'toca para revelar',
     originLabel: 'Origen',
     flavourLabel: 'Sabor',
     brewLabel: 'Preparación',
@@ -952,6 +1084,28 @@ function setLang(lang) {
   buildMoodGrid(false);
   // Re-init intention question
   initIntention();
+  // Re-render card if one is already showing
+  if (selectedCard && arcana[selectedCard]) {
+    const p = arcana[selectedCard];
+    const es = (lang === 'es' && arcanaES[selectedCard]) ? arcanaES[selectedCard] : null;
+    const suitMap   = { major: '✦ Major Arcana', cups: '◎ Cups', wands: '△ Wands', swords: '⟡ Swords', pentacles: '◈ Pentacles' };
+    const suitMapES = { major: '✦ Arcanos Mayores', cups: '◎ Copas', wands: '△ Bastos', swords: '⟡ Espadas', pentacles: '◈ Oros' };
+    document.getElementById('cardNumber').textContent = (lang === 'es' && es && es.number) ? es.number : p.number;
+    document.getElementById('cardName').textContent = es ? es.name : p.name;
+    document.getElementById('cardSubtitle').textContent = es ? es.subtitle : p.subtitle;
+    const suitEl = document.getElementById('cardSuit');
+    if (suitEl) suitEl.textContent = lang === 'es' ? (suitMapES[p.suit] || '') : (suitMap[p.suit] || '');
+    document.getElementById('archetypeText').textContent = es ? es.archetype : p.archetype;
+    document.getElementById('cardBody').textContent = es ? es.body : p.body;
+    document.getElementById('ritualText').textContent = (lang === 'es' && p.ritualES) ? p.ritualES : p.ritual;
+    // Refresh tea note
+    const teaId = p.teas[currentTeaIndex];
+    const tea = teaLibrary[teaId];
+    if (tea) document.getElementById('teaNote').textContent = (lang === 'es' && tea.noteES) ? tea.noteES : tea.note;
+    // Refresh flip hint
+    const hint = document.getElementById('cardFlipHint');
+    if (hint && !hint.classList.contains('hidden')) hint.textContent = lang === 'es' ? 'toca para revelar' : 'tap to reveal';
+  }
 }
 
 function t(key, ...args) {
@@ -1019,7 +1173,7 @@ const teaLibrary = {
     origin: 'Blend of black tea & bergamot oil, popularised in Britain',
     flavour: 'Floral, citrusy bergamot over a malty black tea base. Bright and aromatic.',
     brew: '95°C · 3–4 min',
-    note: 'Familiar and comforting — the scent of bergamot alone is its own small ritual.',
+    note: 'Familiar and comforting — the scent of bergamot alone is its own small ritual.', noteES: 'Familiar y reconfortante — el aroma del bergamota solo ya es un pequeño ritual.',
     tryDifferently: 'Add a splash of warm oat milk and a drop of honey for a London Fog. Sweetened with monk fruit, it becomes something almost dessert-like. Try it iced with a slice of orange in summer.',
     moods: ['solemn','tender','introspective','grounded','searching']
   },
@@ -1031,7 +1185,7 @@ const teaLibrary = {
     origin: 'Japan — steamed and rolled, the most consumed tea in Japan',
     flavour: 'Fresh cut grass, ocean breeze, faintly sweet. Clean and alive.',
     brew: '70°C · 1–1.5 min',
-    note: 'The everyday tea of Japan, at its best when you are paying full attention.',
+    note: 'The everyday tea of Japan, at its best when you are paying full attention.', noteES: 'El té cotidiano de Japón, en su mejor momento cuando prestas toda tu atención.',
     tryDifferently: 'Brew it cooler and longer (60°C, 2 min) for a sweeter, gentler cup. A few drops of honey bring out its natural sweetness without masking it. Try it iced in a tall glass — it becomes something entirely different.',
     moods: ['expansive','joyful','electric','reckoning','awakening']
   },
@@ -1043,7 +1197,7 @@ const teaLibrary = {
     origin: 'Japan — shade-grown, stone-ground into a fine powder',
     flavour: 'Grassy, umami-rich, slightly bitter, with a long creamy finish.',
     brew: '70–75°C · whisked, not steeped',
-    note: 'It demands your full attention to prepare. That preparation is the point.',
+    note: 'It demands your full attention to prepare. That preparation is the point.', noteES: 'Exige tu atención plena para prepararse. Esa preparación es el punto.',
     tryDifferently: 'Whisk with warm oat or almond milk instead of water for a matcha latte — softer, creamier, more approachable. A touch of honey or monk fruit balances the bitterness beautifully. Iced matcha latte on a warm morning is its own kind of joy.',
     moods: ['electric','fierce','awakening','reckoning','joyful']
   },
@@ -1055,7 +1209,7 @@ const teaLibrary = {
     origin: 'China — green tea layered with fresh jasmine blossoms, sometimes multiple times',
     flavour: 'Heady floral jasmine over a gentle green base. Soft, perfumed, romantic.',
     brew: '75–80°C · 2 min',
-    note: 'Light, a little playful — a tea that fills the room before you even sip it.',
+    note: 'Light, a little playful — a tea that fills the room before you even sip it.', noteES: 'Ligero, un poco juguetón — un té que llena la habitación antes de que lo pruebes.',
     tryDifferently: 'Lightly sweetened with honey it becomes almost dessert-like. Try it as a cold brew overnight in the fridge — the jasmine becomes more delicate and hauntingly floral. A few rose petals in the cup make it feel like an occasion.',
     moods: ['tender','playful','joyful','searching','flowing']
   },
@@ -1067,7 +1221,7 @@ const teaLibrary = {
     origin: 'Japan — green tea blended with roasted brown rice',
     flavour: 'Toasty, nutty, with a gentle green tea base. Humble and deeply satisfying.',
     brew: '80°C · 1.5–2 min',
-    note: 'A peasant tea with the grace of ceremony. Two things that had no business together — and yet.',
+    note: 'A peasant tea with the grace of ceremony. Two things that had no business together — and yet.', noteES: 'Un té humilde con la gracia de la ceremonia. Dos cosas que no deberían ir juntas — y sin embargo.',
     tryDifferently: 'Add a small splash of oat milk for a surprisingly creamy, almost popcorn-like warmth. A little stevia keeps it light. Beautiful cold-brewed — the roasted notes mellow into something almost caramel-like.',
     moods: ['grounded','flowing','solemn','suspended','introspective']
   },
@@ -1079,7 +1233,7 @@ const teaLibrary = {
     origin: 'Japan — green tea roasted over charcoal until it turns a warm reddish-brown',
     flavour: 'Toasty, caramel-like, low in bitterness and caffeine. Tastes like autumn.',
     brew: '90°C · 1–2 min',
-    note: 'It tastes like letting go. The roasting removes the grassy edge and leaves only warmth.',
+    note: 'It tastes like letting go. The roasting removes the grassy edge and leaves only warmth.', noteES: 'Sabe a soltar. El tostado elimina el filo herbáceo y deja solo calidez.',
     tryDifferently: 'Stunning as a latte with oat milk and a pinch of cinnamon. Sweetened with honey it becomes a bedtime ritual. A hojicha cold brew over ice is one of summer\'s quiet pleasures.',
     moods: ['melancholic','suspended','grounded','solemn','in-between']
   },
@@ -1091,7 +1245,7 @@ const teaLibrary = {
     origin: 'China & Taiwan — partially oxidised, sitting between green and black tea',
     flavour: 'Varies widely: floral and buttery to roasted and stone-fruit. Endlessly complex.',
     brew: '85–95°C · 1–3 min, multiple infusions',
-    note: 'Neither fully one thing nor another — a tea of beautiful in-between states.',
+    note: 'Neither fully one thing nor another — a tea of beautiful in-between states.', noteES: 'Ni completamente una cosa ni otra — un té de hermosos estados intermedios.',
     tryDifferently: 'The second and third infusions are often better than the first — let it open. A lighter oolong with a touch of honey becomes floral and yielding. Milk oolong (Jin Xuan) is naturally creamy without adding anything at all.',
     moods: ['in-between','flowing','searching','fated','introspective']
   },
@@ -1103,7 +1257,7 @@ const teaLibrary = {
     origin: 'A blend of Assam, Ceylon, and Kenyan black teas, built for the British morning',
     flavour: 'Bold, malty, robust. The tea that wakes you up and means it.',
     brew: '95°C · 3–5 min',
-    note: 'Honest and direct. It asks something of you and gives something back.',
+    note: 'Honest and direct. It asks something of you and gives something back.', noteES: 'Honesto y directo. Te pide algo y te devuelve algo a cambio.',
     tryDifferently: 'A proper splash of whole milk and a spoon of honey turns it into something nurturing and full. Sweetened with monk fruit it stays bold without heaviness. Over ice with a slice of lemon it transforms into something bright and summery.',
     moods: ['grounded','electric','fierce','awakening','reckoning']
   },
@@ -1115,7 +1269,7 @@ const teaLibrary = {
     origin: 'South Africa — unoxidised rooibos, lighter than its red counterpart',
     flavour: 'Delicate, grassy, faintly sweet with a honey-like finish. Caffeine-free.',
     brew: '95°C · 4–5 min',
-    note: 'Lighter and more subtle than red rooibos — a quiet, caffeine-free companion for any time of day.',
+    note: 'Lighter and more subtle than red rooibos — a quiet, caffeine-free companion for any time of day.', noteES: 'Más ligero y sutil que el rooibos rojo — un compañero tranquilo y sin cafeína para cualquier momento del día.',
     tryDifferently: 'Cold brew overnight for an exceptionally smooth, naturally sweet cup. A little honey makes it feel like liquid sunlight. With oat milk it becomes a gentle, comforting latte.',
     moods: ['tender','flowing','searching','joyful','introspective']
   },
@@ -1127,7 +1281,7 @@ const teaLibrary = {
     origin: 'South African rooibos blended with chai spices — cinnamon, cardamom, ginger, clove',
     flavour: 'Warm, spiced, sweet, and grounding. Caffeine-free and deeply comforting.',
     brew: '95°C · 5 min',
-    note: 'This is a hug in a cup. The spices do what spices do — they make everything feel a little more okay.',
+    note: 'This is a hug in a cup. The spices do what spices do — they make everything feel a little more okay.', noteES: 'Esto es un abrazo en una taza. Las especias hacen lo que hacen las especias — hacen que todo se sienta un poco mejor.',
     tryDifferently: 'Brewed strong and topped with warm oat milk and a spoon of honey, it becomes a proper chai latte without the caffeine. Sweetened with stevia and served iced, it is surprisingly refreshing. Add a pinch of black pepper for extra warmth on cold days.',
     moods: ['grounded','tender','joyful','solemn','flowing']
   },
@@ -1139,7 +1293,7 @@ const teaLibrary = {
     origin: 'Blends of dried fruits, flowers, and herbs — hibiscus, berries, rose hip, apple',
     flavour: 'Bright, tart, and colourful. Hibiscus-based blends are jewel-red and tangy.',
     brew: '95°C · 5–7 min',
-    note: 'Cheerful and uncomplicated. The tea equivalent of a good mood.',
+    note: 'Cheerful and uncomplicated. The tea equivalent of a good mood.', noteES: 'Alegre y sin complicaciones. El equivalente en té de un buen humor.',
     tryDifferently: 'Iced with a slice of orange or lemon it becomes something entirely different — vivid, summery, refreshing. Sweetened with a little honey the tartness softens into something almost cordial-like. Try a warm cup with a drop of monk fruit sweetener before bed.',
     moods: ['joyful','playful','expansive','awakening','electric']
   },
@@ -1151,7 +1305,7 @@ const teaLibrary = {
     origin: 'Dried chamomile flowers — grown across Europe and North Africa',
     flavour: 'Soft, apple-like, faintly honey-sweet. The gentlest of teas.',
     brew: '95°C · 5 min',
-    note: 'The tea that gives you permission to slow down. It does not rush. Neither should you.',
+    note: 'The tea that gives you permission to slow down. It does not rush. Neither should you.', noteES: 'El té que te da permiso de ir despacio. Él no tiene prisa. Tú tampoco deberías tenerla.',
     tryDifferently: 'A spoon of honey makes it feel like a remedy. With warm oat milk it becomes almost dessert — soft and soporific in the best way. A slice of fresh ginger in the cup adds warmth and a little brightness without disturbing the calm.',
     moods: ['introspective','suspended','melancholic','tender','in-between']
   },
@@ -1163,7 +1317,7 @@ const teaLibrary = {
     origin: 'Peppermint, lavender, lemon verbena, lemon balm, hibiscus, and beyond',
     flavour: 'As varied as the garden — cooling mint, calming lavender, bright lemon verbena.',
     brew: '95°C · 4–6 min',
-    note: 'Whatever is in your cup, it was chosen for a reason. Trust that.',
+    note: 'Whatever is in your cup, it was chosen for a reason. Trust that.', noteES: 'Lo que sea que haya en tu taza, fue elegido por una razón. Confía en eso.',
     tryDifferently: 'Peppermint is beautiful iced. Lavender with a touch of honey is deeply calming. Lemon verbena cold-brewed overnight is bright and almost sparkling. Let the herb guide you — most tisanes surprise you when you try them differently.',
     moods: ['flowing','searching','playful','fated','tender']
   }
@@ -1180,22 +1334,22 @@ const teaOrder = [
 // GENDER-NEUTRAL SPANISH MOOD LABELS
 // ─────────────────────────────────────────────
 const moodLabelsES = {
-  'introspective': 'en introspección',
-  'melancholic':   'en melancolía',
-  'expansive':     'en expansión',
+  'introspective': 'introspectivo/a',
+  'melancholic':   'melancólico/a',
+  'expansive':     'expandiéndome',
   'grounded':      'con los pies en la tierra',
-  'electric':      'en electricidad',
-  'tender':        'con ternura',
+  'electric':      'vibrante',
+  'tender':        'enternecido/a',
   'searching':     'buscando',
-  'fierce':        'con intensidad',
-  'in-between':    'entre mundos',
-  'joyful':        'con alegría',
-  'solemn':        'en solemnidad',
-  'playful':       'con ligereza',
-  'reckoning':     'en reflexión',
-  'suspended':     'en suspenso',
-  'fated':         'con destino',
-  'shadowed':      'en sombra',
+  'fierce':        'feroz',
+  'in-between':    'dividido/a',
+  'joyful':        'alegre',
+  'solemn':        'solemne',
+  'playful':       'juguetón/a',
+  'reckoning':     'reflexivo/a',
+  'suspended':     'flotando',
+  'fated':         'con suerte',
+  'shadowed':      'nublado/a',
   'flowing':       'fluyendo',
   'awakening':     'despertando'
 };
@@ -1213,7 +1367,7 @@ const arcana = {
     body: "The Fool is the card of pure beginnings — before experience accumulates, before the path gets worn in. Your music is in that open, not-yet-knowing place. Wonderful.",
     teas: ['jasmine','fruittisane','oolong'],
     tracks: [{ title: "Naive", artist: "The Kooks" },{ title: "Budapest", artist: "George Ezra" },{ title: "Two of Us", artist: "The Beatles" },{ title: "I Will Follow You Into the Dark", artist: "Death Cab for Cutie" }],
-    ritual: "Pick one track you've never heard before and play it alongside the tea. The Fool always starts with something new.",
+    ritual: "Pick one track you've never heard before and play it alongside the tea. The Fool always starts with something new.", ritualES: 'Elige una canción que nunca hayas escuchado y ponla junto al té. La Locura siempre empieza con algo nuevo.',
     moods: ['playful','joyful','expansive','searching']
   },
   magician: {
@@ -1222,7 +1376,7 @@ const arcana = {
     body: "The Magician is pure agency — the moment before creation when all possibility is still live. Your music is at a high voltage right now. Use it.",
     teas: ['matcha','sencha','earlgrey'],
     tracks: [{ title: "Baba O'Riley", artist: "The Who" },{ title: "Mr. Brightside", artist: "The Killers" },{ title: "Power", artist: "Kanye West" },{ title: "Heads Will Roll", artist: "Yeah Yeah Yeahs" }],
-    ritual: "Set one clear intention before the first track plays. Write it on paper. Just one sentence.",
+    ritual: "Set one clear intention before the first track plays. Write it on paper. Just one sentence.", ritualES: 'Establece una intención clara antes de que empiece la primera canción. Escríbela. Solo una frase.',
     moods: ['electric','fierce','awakening','reckoning']
   },
   highpriestess: {
@@ -1231,7 +1385,7 @@ const arcana = {
     body: "This card speaks to the interior life. The music pulling you inward right now is doing so for a reason. Trust the silence between the notes.",
     teas: ['chamomile','greenrooibos','oolong'],
     tracks: [{ title: "On the Nature of Daylight", artist: "Max Richter" },{ title: "Gymnopédie No.1", artist: "Erik Satie" },{ title: "Experience", artist: "Ludovico Einaudi" },{ title: "Comptine d'un autre été", artist: "Yann Tiersen" }],
-    ritual: "Brew the tea before pressing play. Hold the cup with both hands. Let the first three minutes pass without looking at your phone.",
+    ritual: "Brew the tea before pressing play. Hold the cup with both hands. Let the first three minutes pass without looking at your phone.", ritualES: 'Prepara el té antes de darle play. Sostén la taza con las dos manos. Deja pasar los primeros tres minutos sin mirar el teléfono.',
     moods: ['introspective','searching','in-between','melancholic']
   },
   empress: {
@@ -1239,8 +1393,8 @@ const arcana = {
     archetype: "She is the field in full flower. She does not justify her richness. She simply is.",
     body: "The Empress is sensory, full, overflowing. Your music right now is lush — it wants to be felt, not analysed. Let it fill the room. Let it fill you.",
     teas: ['jasmine','rooiboschai','earlgrey'],
-    tracks: [{ title: "Green Eyes", artist: "Coldplay" },{ title: "Be My Husband", artist: "Nina Simone" },{ title: "Lover", artist: "Taylor Swift" },{ title: "Bloom", artist: "The Paper Kites" }],
-    ritual: "Brew more than you think you need. Drink it somewhere comfortable. This is not a tea for your desk.",
+    tracks: [{ title: "You & I", artist: "Ingrid Michaelson" },{ title: "Be My Husband", artist: "Nina Simone" },{ title: "Lover", artist: "Taylor Swift" },{ title: "Bloom", artist: "The Paper Kites" }],
+    ritual: "Brew more than you think you need. Drink it somewhere comfortable. This is not a tea for your desk.", ritualES: 'Prepara más de lo que crees necesitar. Tómalo en algún lugar cómodo. Este no es un té para el escritorio.',
     moods: ['expansive','tender','joyful','flowing']
   },
   emperor: {
@@ -1249,7 +1403,7 @@ const arcana = {
     body: "Solemnity is not sadness — it is the taking-seriously of things that matter. Your music carries that gravity. There is something here that deserves your full attention.",
     teas: ['morningblend','earlgrey','hojicha'],
     tracks: [{ title: "Clair de Lune", artist: "Claude Debussy" },{ title: "Adagio for Strings", artist: "Samuel Barber" },{ title: "How to Disappear Completely", artist: "Radiohead" },{ title: "The Becoming", artist: "Nine Inch Nails" }],
-    ritual: "Silence your phone. Close unnecessary tabs. This music and this tea deserve a clean space.",
+    ritual: "Silence your phone. Close unnecessary tabs. This music and this tea deserve a clean space.", ritualES: 'Silencia el teléfono. Cierra las pestañas innecesarias. Esta música y este té merecen un espacio limpio.',
     moods: ['solemn','grounded','reckoning','fierce']
   },
   hierophant: {
@@ -1258,7 +1412,7 @@ const arcana = {
     body: "This card honours what has been built over time. Your music has roots — it reaches for something solid, something proven. That is not conservatism; it is faith in continuity.",
     teas: ['genmaicha','morningblend','rooiboschai'],
     tracks: [{ title: "The Wood Song", artist: "Indigo Girls" },{ title: "Holocene", artist: "Bon Iver" },{ title: "In the Aeroplane Over the Sea", artist: "Neutral Milk Hotel" },{ title: "Dirt", artist: "Bahamas" }],
-    ritual: "Before you sip, name one thing you are grateful to have inherited — from a person, a place, a practice.",
+    ritual: "Before you sip, name one thing you are grateful to have inherited — from a person, a place, a practice.", ritualES: 'Antes de beber, nombra algo que estés agradecido de haber heredado — de una persona, un lugar, una práctica.',
     moods: ['grounded','solemn','introspective','searching']
   },
   lovers: {
@@ -1267,7 +1421,7 @@ const arcana = {
     body: "This card lives in the heart's most exposed places. Your music is soft-focused right now, oriented toward something or someone. Let the tenderness be real.",
     teas: ['jasmine','greenrooibos','chamomile'],
     tracks: [{ title: "First Day of My Life", artist: "Bright Eyes" },{ title: "To Be Alone With You", artist: "Sufjan Stevens" },{ title: "Such Great Heights", artist: "The Postal Service" },{ title: "Bloom", artist: "The Paper Kites" }],
-    ritual: "Think of who or what you would share this cup with. Then brew as if they were present.",
+    ritual: "Think of who or what you would share this cup with. Then brew as if they were present.", ritualES: 'Piensa con quién o con qué compartirías esta taza. Luego prepárala como si estuvieran presentes.',
     moods: ['tender','joyful','searching','expansive']
   },
   chariot: {
@@ -1276,7 +1430,7 @@ const arcana = {
     body: "The Chariot is motion with purpose. Your music has direction right now — there's momentum in it, even if you can't name the destination. Trust the forward pull.",
     teas: ['morningblend','matcha','sencha'],
     tracks: [{ title: "Run Boy Run", artist: "Woodkid" },{ title: "No Church in the Wild", artist: "Jay-Z & Kanye West" },{ title: "Seven Nation Army", artist: "The White Stripes" },{ title: "Eye of the Tiger", artist: "Survivor" }],
-    ritual: "Drink the first cup standing. Let the music move through you before you sit.",
+    ritual: "Drink the first cup standing. Let the music move through you before you sit.", ritualES: 'Toma la primera taza de pie. Deja que la música te atraviese antes de sentarte.',
     moods: ['electric','fierce','grounded','awakening']
   },
   strength: {
@@ -1285,7 +1439,7 @@ const arcana = {
     body: "True strength in this card is radically gentle. Your music is fierce but not brittle. There is a core in it that does not need to prove itself.",
     teas: ['morningblend','earlgrey','matcha'],
     tracks: [{ title: "Immigrant Song", artist: "Led Zeppelin" },{ title: "Runaway", artist: "Kanye West" },{ title: "TYRANT", artist: "Rosalía" },{ title: "Mother", artist: "Pink Floyd" }],
-    ritual: "Drink the whole cup before starting the second track. Do not rush it.",
+    ritual: "Drink the whole cup before starting the second track. Do not rush it.", ritualES: 'Toma toda la taza antes de que empiece la segunda canción. No lo apresures.',
     moods: ['fierce','tender','grounded','reckoning']
   },
   hermit: {
@@ -1293,8 +1447,8 @@ const arcana = {
     archetype: "He climbed the mountain not to escape, but to see clearly. The lantern is for others, eventually. For now it lights only the next step.",
     body: "The Hermit chooses solitude deliberately — it is not isolation, it is refinement. Your music is a kind of turning inward, a careful reduction. Stay with it.",
     teas: ['chamomile','genmaicha','othertisane'],
-    tracks: [{ title: "Casimir Pulaski Day", artist: "Sufjan Stevens" },{ title: "Pink Moon", artist: "Nick Drake" },{ title: "Skinny Love", artist: "Bon Iver" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" }],
-    ritual: "Brew the tea in silence — no music yet. Only when the cup is in your hands should you press play. Begin with the quietest track.",
+    tracks: [{ title: "Tenuousness", artist: "Andrew Bird" },{ title: "Pink Moon", artist: "Nick Drake" },{ title: "Skinny Love", artist: "Bon Iver" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" }],
+    ritual: "Brew the tea in silence — no music yet. Only when the cup is in your hands should you press play. Begin with the quietest track.", ritualES: 'Prepara el té en silencio — aún sin música. Solo cuando la taza esté en tus manos, dale play. Empieza con la canción más tranquila.',
     moods: ['introspective','melancholic','solemn','searching']
   },
   wheeloffortune: {
@@ -1302,8 +1456,8 @@ const arcana = {
     archetype: "The wheel does not ask permission. Sphinx at the top, serpent going down, Anubis on the way back up. The cycle does not care who you are.",
     body: "Your music is tapping into something larger than the moment — a sense of time, of cycles, of things that return. The Wheel is not about control. It's about knowing when to let go.",
     teas: ['oolong','othertisane','hojicha'],
-    tracks: [{ title: "Karma Police", artist: "Radiohead" },{ title: "The Times They Are A-Changin'", artist: "Bob Dylan" },{ title: "Retrograde", artist: "James Blake" },{ title: "The Four Seasons — Spring", artist: "Vivaldi" }],
-    ritual: "Let the playlist shuffle. Relinquish the queue. Whatever plays next is what plays next.",
+    tracks: [{ title: "Karma Police", artist: "Radiohead" },{ title: "The Times They Are A-Changin'", artist: "Bob Dylan" },{ title: "Retrograde", artist: "James Blake" },{ title: "Sprawl II", artist: "Arcade Fire" }],
+    ritual: "Let the playlist shuffle. Relinquish the queue. Whatever plays next is what plays next.", ritualES: 'Deja que la lista se mezcle sola. Suelta el control. Lo que suene después, es lo que suena.',
     moods: ['fated','in-between','suspended','flowing']
   },
   justice: {
@@ -1312,7 +1466,7 @@ const arcana = {
     body: "Justice is not punishment; it's precision. Your music right now has a clear-eyed quality — it is naming things. Something is being weighed, and you already know the answer.",
     teas: ['sencha','earlgrey','greenrooibos'],
     tracks: [{ title: "Like a Stone", artist: "Audioslave" },{ title: "Strange Fruit", artist: "Billie Holiday" },{ title: "Man in the Mirror", artist: "Michael Jackson" },{ title: "The Reckoning", artist: "Need to Breathe" }],
-    ritual: "Before the first track, name one thing you have been avoiding knowing. You don't have to act on it. Just let it be true.",
+    ritual: "Before the first track, name one thing you have been avoiding knowing. You don't have to act on it. Just let it be true.", ritualES: 'Antes de la primera canción, nombra algo que hayas estado evitando saber. No tienes que actuar. Solo déjalo ser verdad.',
     moods: ['reckoning','solemn','grounded','fierce']
   },
   hangedman: {
@@ -1321,7 +1475,7 @@ const arcana = {
     body: "The Hanged Man is not stuck — he is waiting on purpose. Your music has that quality of pause, of something held back. This is not stagnation. This is strategic stillness.",
     teas: ['chamomile','hojicha','othertisane'],
     tracks: [{ title: "Motion Picture Soundtrack", artist: "Radiohead" },{ title: "Naked as We Came", artist: "Iron & Wine" },{ title: "Comptine d'un autre été", artist: "Yann Tiersen" },{ title: "Re: Stacks", artist: "Bon Iver" }],
-    ritual: "Brew the tea. Don't press play immediately. Sit with the silence for two minutes. Then begin.",
+    ritual: "Brew the tea. Don't press play immediately. Sit with the silence for two minutes. Then begin.", ritualES: 'Prepara el té. No le des play de inmediato. Siéntate con el silencio dos minutos. Luego empieza.',
     moods: ['suspended','melancholic','in-between','introspective']
   },
   death: {
@@ -1330,7 +1484,7 @@ const arcana = {
     body: "Death in Tarot is never about loss alone. It's the card of transformation, of what must be shed so that something true can emerge. Your music knows this already.",
     teas: ['hojicha','genmaicha','chamomile'],
     tracks: [{ title: "Death With Dignity", artist: "Sufjan Stevens" },{ title: "Motion Picture Soundtrack", artist: "Radiohead" },{ title: "Re: Stacks", artist: "Bon Iver" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" }],
-    ritual: "Brew a second cup after you finish the first. The second steeping is always more honest than the first.",
+    ritual: "Brew a second cup after you finish the first. The second steeping is always more honest than the first.", ritualES: 'Prepara una segunda taza cuando termines la primera. La segunda infusión siempre es más honesta que la primera.',
     moods: ['melancholic','shadowed','in-between','solemn']
   },
   temperance: {
@@ -1339,7 +1493,7 @@ const arcana = {
     body: "Temperance is the card of the long blend — things being slowly brought into harmony. Your music has that quality: different elements that shouldn't work together, and yet. Let it breathe.",
     teas: ['rooiboschai','oolong','greenrooibos'],
     tracks: [{ title: "Blue Ridge Mountains", artist: "Fleet Foxes" },{ title: "Such Great Heights", artist: "The Postal Service" },{ title: "Let It Be", artist: "The Beatles" },{ title: "Lua", artist: "Bright Eyes" }],
-    ritual: "Add something you don't usually add to your tea — a slice of ginger, a drop of honey, a squeeze of citrus. A small act of alchemy.",
+    ritual: "Add something you don't usually add to your tea — a slice of ginger, a drop of honey, a squeeze of citrus. A small act of alchemy.", ritualES: 'Añade algo que normalmente no le pones al té — una rodaja de jengibre, una gota de miel, un chorrito de cítrico. Un pequeño acto de alquimia.',
     moods: ['flowing','grounded','in-between','tender']
   },
   devil: {
@@ -1348,7 +1502,7 @@ const arcana = {
     body: "This card does not shame. It witnesses. Your music is circling something seductive and complex — a loop, a pattern, something you keep returning to.",
     teas: ['earlgrey','hojicha','othertisane'],
     tracks: [{ title: "Sinner Man", artist: "Nina Simone" },{ title: "Everybody Wants to Rule the World", artist: "Tears for Fears" },{ title: "Bad Guy", artist: "Billie Eilish" },{ title: "Dark Horse", artist: "Katy Perry" }],
-    ritual: "Drink the tea slowly. Notice every sip. Notice what you keep returning to in the music. No judgment — just noticing.",
+    ritual: "Drink the tea slowly. Notice every sip. Notice what you keep returning to in the music. No judgment — just noticing.", ritualES: 'Bebe el té despacio. Nota cada sorbo. Nota a qué sigues volviendo en la música. Sin juicio — solo observando.',
     moods: ['shadowed','electric','fierce','fated']
   },
   tower: {
@@ -1357,7 +1511,7 @@ const arcana = {
     body: "The Tower is the card nobody wants and everybody needs eventually. Something is breaking open. Your music knows it. Let the walls come down — what survives was always real.",
     teas: ['matcha','morningblend','sencha'],
     tracks: [{ title: "Everything in Its Right Place", artist: "Radiohead" },{ title: "Shake It Out", artist: "Florence + the Machine" },{ title: "The End of the World", artist: "Skeeter Davis" },{ title: "Survival", artist: "Eminem" }],
-    ritual: "Write down one thing that no longer serves you. You don't have to burn it. Just name it.",
+    ritual: "Write down one thing that no longer serves you. You don't have to burn it. Just name it.", ritualES: 'Escribe algo que ya no te sirve. No tienes que quemarlo. Solo nómbralo.',
     moods: ['electric','reckoning','fierce','awakening','shadowed']
   },
   star: {
@@ -1365,8 +1519,8 @@ const arcana = {
     archetype: "She pours endlessly into both water and land — giving without depletion, trusting in renewal.",
     body: "The Star comes after ruin. It is the card of guided navigation, of following the faint light that hasn't gone out. Your music is reaching for something. It will find it.",
     teas: ['jasmine','greenrooibos','chamomile'],
-    tracks: [{ title: "Lua", artist: "Bright Eyes" },{ title: "Blue Ridge Mountains", artist: "Fleet Foxes" },{ title: "Naked as We Came", artist: "Iron & Wine" },{ title: "Casimir Pulaski Day", artist: "Sufjan Stevens" }],
-    ritual: "Let the playlist run past the songs you know. Leave room for discovery. The Star always points somewhere you haven't been.",
+    tracks: [{ title: "Lua", artist: "Bright Eyes" },{ title: "Blue Ridge Mountains", artist: "Fleet Foxes" },{ title: "Hasta la Raíz", artist: "Natalia Lafourcade" },{ title: "Naked as We Came", artist: "Iron & Wine" }],
+    ritual: "Let the playlist run past the songs you know. Leave room for discovery. The Star always points somewhere you haven't been.", ritualES: 'Deja que la lista pase más allá de las canciones que conoces. Deja espacio para el descubrimiento. La Esperanza siempre señala hacia donde no has estado.',
     moods: ['searching','melancholic','expansive','awakening']
   },
   moon: {
@@ -1375,7 +1529,7 @@ const arcana = {
     body: "The Moon governs everything in-between: the threshold, the dream, the not-yet-resolved. Your music is living in that space right now — half-familiar, slightly strange.",
     teas: ['chamomile','oolong','othertisane'],
     tracks: [{ title: "Weird Fishes / Arpeggi", artist: "Radiohead" },{ title: "Woods", artist: "Bon Iver" },{ title: "Skinny Love", artist: "Bon Iver" },{ title: "Possibility", artist: "Lykke Li" }],
-    ritual: "Brew the tea in dim light. Stay with the discomfort of not-knowing. The Moon rewards those who don't reach for the light switch.",
+    ritual: "Brew the tea in dim light. Stay with the discomfort of not-knowing. The Moon rewards those who don't reach for the light switch.", ritualES: 'Prepara el té con poca luz. Quédate con la incomodidad de no saber. El Umbral recompensa a quienes no buscan el interruptor.',
     moods: ['in-between','suspended','introspective','melancholic']
   },
   sun: {
@@ -1384,7 +1538,7 @@ const arcana = {
     body: "The Sun is the card of full presence, of stepping into the open. Your playlist right now is the sound of something opening. Let it.",
     teas: ['fruittisane','sencha','jasmine'],
     tracks: [{ title: "Here Comes the Sun", artist: "The Beatles" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "Good as Hell", artist: "Lizzo" }],
-    ritual: "Take your cup outside if you can, or at least to a window. Drink it standing. The Sun doesn't sit still.",
+    ritual: "Take your cup outside if you can, or at least to a window. Drink it standing. The Sun doesn't sit still.", ritualES: 'Lleva tu taza afuera si puedes, o al menos a una ventana. Tómala de pie. La Alegría no se queda quieta.',
     moods: ['joyful','expansive','playful','awakening']
   },
   judgement: {
@@ -1392,8 +1546,8 @@ const arcana = {
     archetype: "The angel blows the horn and the risen do not look frightened. They look relieved. They had been waiting for permission to come back.",
     body: "Judgement is not verdict — it's awakening. Something in you is rising that has been buried. Your music feels like that: something returning from far away.",
     teas: ['matcha','morningblend','fruittisane'],
-    tracks: [{ title: "Shake It Out", artist: "Florence + the Machine" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "Clocks", artist: "Coldplay" },{ title: "The Sound of Silence", artist: "Simon & Garfunkel" }],
-    ritual: "Write down one thing you are ready to stop carrying. You don't have to do anything with it. Just name it.",
+    tracks: [{ title: "Shake It Out", artist: "Florence + the Machine" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "Wake Up", artist: "Arcade Fire" },{ title: "The Sound of Silence", artist: "Simon & Garfunkel" }],
+    ritual: "Write down one thing you are ready to stop carrying. You don't have to do anything with it. Just name it.", ritualES: 'Escribe algo que estés lista/o de dejar de cargar. No tienes que hacer nada con eso. Solo nómbralo.',
     moods: ['awakening','reckoning','searching','expansive']
   },
   world: {
@@ -1401,524 +1555,524 @@ const arcana = {
     archetype: "She dances in the laurel wreath. She has been all four corners and returned. She is dancing.",
     body: "The World is wholeness, arrival, the satisfaction of full presence. Your music is celebrating something — even if you can't name it. Let it.",
     teas: ['rooiboschai','fruittisane','jasmine'],
-    tracks: [{ title: "September", artist: "Earth, Wind & Fire" },{ title: "Dancing Queen", artist: "ABBA" },{ title: "Can't Stop the Feeling", artist: "Justin Timberlake" },{ title: "Good as Hell", artist: "Lizzo" }],
-    ritual: "Brew a second infusion the moment the first is done. This tea gives more each time. So do you.",
+    tracks: [{ title: "September", artist: "Earth, Wind & Fire" },{ title: "Dancing Queen", artist: "ABBA" },{ title: "Marinade", artist: "Dope Lemon" },{ title: "Good as Hell", artist: "Lizzo" }],
+    ritual: "Brew a second infusion the moment the first is done. This tea gives more each time. So do you.", ritualES: 'Prepara una segunda infusión en cuanto termines la primera. Este té da más cada vez. Tú también.',
     moods: ['joyful','expansive','flowing','fated']
   },
 
   // ── MINOR ARCANA — CUPS (emotions, intuition, relationships) ──
 
   aceofcups: {
-    number: "Ace of Cups", name: "Ace of Cups", subtitle: "The overflowing heart", symbol: "🏆", suit: "cups",
+    number: "Cups · Ace", name: "Ace of Cups", subtitle: "The overflowing heart", symbol: "🏆", suit: "cups",
     archetype: "A cup overflows with five streams. A dove descends. The beginning of all feeling.",
     body: "New emotional beginnings are here. Your music is opening a door in your chest you forgot was there. Let whatever comes, come.",
     teas: ['jasmine','chamomile','greenrooibos'],
     tracks: [{ title: "First Day of My Life", artist: "Bright Eyes" },{ title: "Pure Imagination", artist: "Gene Wilder" },{ title: "River", artist: "Leon Bridges" },{ title: "Bloom", artist: "The Paper Kites" }],
-    ritual: "Pour the tea as slowly as you can. Watch it fill the cup. This is the beginning of something.",
+    ritual: "Pour the tea as slowly as you can. Watch it fill the cup. This is the beginning of something.", ritualES: 'Vierte el té tan despacio como puedas. Observa cómo llena la taza. Esto es el comienzo de algo.',
     moods: ['tender','joyful','expansive','searching']
   },
   twoofcups: {
-    number: "Two of Cups", name: "Two of Cups", subtitle: "The recognition", symbol: "⚭", suit: "cups",
+    number: "Cups · II", name: "Two of Cups", subtitle: "The recognition", symbol: "⚭", suit: "cups",
     archetype: "Two figures exchange cups — and in the exchange, something mutual is named.",
     body: "This card is about connection recognised. Your music is about being seen and seeing. Someone, somewhere, made this for someone exactly like you.",
     teas: ['jasmine','rooiboschai','earlgrey'],
     tracks: [{ title: "The Night Will Always Win", artist: "Manchester Orchestra" },{ title: "Two of Us", artist: "The Beatles" },{ title: "Lover", artist: "Taylor Swift" },{ title: "Make You Feel My Love", artist: "Adele" }],
-    ritual: "Make two cups today. Give one away, or leave one waiting.",
+    ritual: "Make two cups today. Give one away, or leave one waiting.", ritualES: 'Haz dos tazas hoy. Regala una, o deja una esperando.',
     moods: ['tender','joyful','searching','flowing']
   },
   threeofcups: {
-    number: "Three of Cups", name: "Three of Cups", subtitle: "The celebration", symbol: "🎉", suit: "cups",
+    number: "Cups · III", name: "Three of Cups", subtitle: "The celebration", symbol: "🎉", suit: "cups",
     archetype: "Three figures raise their cups together. The harvest is in. The joy is shared.",
     body: "Joy multiplies when it's held in common. Your music right now is the sound of people together — let it remind you who you want to call.",
     teas: ['fruittisane','jasmine','rooiboschai'],
     tracks: [{ title: "September", artist: "Earth, Wind & Fire" },{ title: "Good as Hell", artist: "Lizzo" },{ title: "Dancing Queen", artist: "ABBA" },{ title: "Shake It Out", artist: "Florence + the Machine" }],
-    ritual: "Who haven't you celebrated lately? Send them something small before you finish your cup.",
+    ritual: "Who haven't you celebrated lately? Send them something small before you finish your cup.", ritualES: '¿A quién no has celebrado últimamente? Envíales algo pequeño antes de terminar tu taza.',
     moods: ['joyful','playful','expansive','flowing']
   },
   fourofcups: {
-    number: "Four of Cups", name: "Four of Cups", subtitle: "The quiet refusal", symbol: "🙈", suit: "cups",
+    number: "Cups · IV", name: "Four of Cups", subtitle: "The quiet refusal", symbol: "🙈", suit: "cups",
     archetype: "Three cups before him, a fourth offered from a cloud — and he looks away. Not ungrateful. Just not ready.",
     body: "There's a stillness in you that's being mistaken for apathy. Your music is circling something you're not quite ready to receive. That's allowed.",
     teas: ['chamomile','hojicha','genmaicha'],
     tracks: [{ title: "Motion Picture Soundtrack", artist: "Radiohead" },{ title: "Re: Stacks", artist: "Bon Iver" },{ title: "Lua", artist: "Bright Eyes" },{ title: "Pink Moon", artist: "Nick Drake" }],
-    ritual: "Sit with the cup without drinking immediately. Notice the resistance. Then sip.",
+    ritual: "Sit with the cup without drinking immediately. Notice the resistance. Then sip.", ritualES: 'Siéntate con la taza sin beber de inmediato. Nota la resistencia. Luego bebe.',
     moods: ['suspended','melancholic','introspective','in-between']
   },
   fiveofcups: {
-    number: "Five of Cups", name: "Five of Cups", subtitle: "The mourning", symbol: "💧", suit: "cups",
+    number: "Cups · V", name: "Five of Cups", subtitle: "The mourning", symbol: "💧", suit: "cups",
     archetype: "Three cups spilled. Two still standing. He looks only at the loss. The bridge home is behind him.",
     body: "Something real was lost, and the grief is real too. Your music holds space for that. But there are two cups still standing — when you're ready, they'll be there.",
     teas: ['chamomile','hojicha','othertisane'],
     tracks: [{ title: "Death With Dignity", artist: "Sufjan Stevens" },{ title: "Skinny Love", artist: "Bon Iver" },{ title: "Casimir Pulaski Day", artist: "Sufjan Stevens" },{ title: "Possibility", artist: "Lykke Li" }],
-    ritual: "Let yourself have the grief. All of it, just for this cup. Then look up.",
+    ritual: "Let yourself have the grief. All of it, just for this cup. Then look up.", ritualES: 'Permítete el duelo. Todo, solo por esta taza. Luego levanta la vista.',
     moods: ['melancholic','shadowed','suspended','introspective']
   },
   sixofcups: {
-    number: "Six of Cups", name: "Six of Cups", subtitle: "The sweet return", symbol: "🌸", suit: "cups",
+    number: "Cups · VI", name: "Six of Cups", subtitle: "The sweet return", symbol: "🌸", suit: "cups",
     archetype: "A child offers flowers in a cup. The old garden. The uncomplicated time.",
     body: "Something from before is returning — a memory, a feeling, a version of yourself you'd almost forgotten. Your music sounds like going home.",
     teas: ['chamomile','jasmine','earlgrey'],
-    tracks: [{ title: "Golden Hour", artist: "KACEY MUSGRAVES" },{ title: "Here Comes the Sun", artist: "The Beatles" },{ title: "Holocene", artist: "Bon Iver" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" }],
-    ritual: "Think of something you loved as a child. Let the music take you there.",
+    tracks: [{ title: "Golden Hour", artist: "KACEY MUSGRAVES" },{ title: "Here Comes the Sun", artist: "The Beatles" },{ title: "En El 2000", artist: "Natalia Lafourcade" },{ title: "Holocene", artist: "Bon Iver" }],
+    ritual: "Think of something you loved as a child. Let the music take you there.", ritualES: 'Piensa en algo que amabas de niño/a. Deja que la música te lleve ahí.',
     moods: ['tender','melancholic','introspective','joyful']
   },
   sevenofcups: {
-    number: "Seven of Cups", name: "Seven of Cups", subtitle: "The beautiful confusion", symbol: "☁️", suit: "cups",
+    number: "Cups · VII", name: "Seven of Cups", subtitle: "The beautiful confusion", symbol: "☁️", suit: "cups",
     archetype: "Seven visions in seven cups — each one real, none of them solid. Infinite choice is its own kind of paralysis.",
     body: "You're rich with possibility right now, which can feel like drowning. Your music reflects the swirl. Pick one vision and move toward it.",
     teas: ['oolong','othertisane','jasmine'],
-    tracks: [{ title: "Weird Fishes / Arpeggi", artist: "Radiohead" },{ title: "Retrograde", artist: "James Blake" },{ title: "Woods", artist: "Bon Iver" },{ title: "Such Great Heights", artist: "The Postal Service" }],
-    ritual: "Close your eyes after the first sip. The first image that comes — write it down.",
+    tracks: [{ title: "Weird Fishes / Arpeggi", artist: "Radiohead" },{ title: "The Bay", artist: "Metronomy" },{ title: "Woods", artist: "Bon Iver" },{ title: "Such Great Heights", artist: "The Postal Service" }],
+    ritual: "Close your eyes after the first sip. The first image that comes — write it down.", ritualES: 'Cierra los ojos después del primer sorbo. La primera imagen que llegue — escríbela.',
     moods: ['searching','in-between','expansive','suspended']
   },
   eightofcups: {
-    number: "Eight of Cups", name: "Eight of Cups", subtitle: "The walking away", symbol: "🚶", suit: "cups",
+    number: "Cups · VIII", name: "Eight of Cups", subtitle: "The walking away", symbol: "🚶", suit: "cups",
     archetype: "Eight cups stacked neatly. He walks away from them into the mountains. Nothing was wrong with them. He simply needed more.",
     body: "This is the card of the quiet departure — leaving something good because something truer is calling. Your music understands this. So do you.",
     teas: ['hojicha','genmaicha','sencha'],
-    tracks: [{ title: "Road Trippin'", artist: "Red Hot Chili Peppers" },{ title: "Exit Strategy of a Wrecking Ball", artist: "Laura Marling" },{ title: "Holocene", artist: "Bon Iver" },{ title: "Re: Stacks", artist: "Bon Iver" }],
-    ritual: "Name something you've been holding on to out of habit. You don't have to let go today. Just notice.",
+    tracks: [{ title: "A Calf Born in Winter", artist: "Khruangbin" },{ title: "Exit Strategy of a Wrecking Ball", artist: "Laura Marling" },{ title: "Holocene", artist: "Bon Iver" },{ title: "Re: Stacks", artist: "Bon Iver" }],
+    ritual: "Name something you've been holding on to out of habit. You don't have to let go today. Just notice.", ritualES: 'Nombra algo a lo que te has aferrado por hábito. No tienes que soltarlo hoy. Solo obsérvalo.',
     moods: ['searching','melancholic','grounded','in-between']
   },
   nineofcups: {
-    number: "Nine of Cups", name: "Nine of Cups", subtitle: "The wish fulfilled", symbol: "✨", suit: "cups",
+    number: "Cups · IX", name: "Nine of Cups", subtitle: "The wish fulfilled", symbol: "✨", suit: "cups",
     archetype: "He sits before nine full cups, arms crossed, satisfied. This is the wish card. Whatever you asked for — it's here.",
     body: "The Nine of Cups is permission to be satisfied. Your music right now is savoring something. Let yourself have it completely.",
     teas: ['rooiboschai','jasmine','fruittisane'],
-    tracks: [{ title: "Good as Hell", artist: "Lizzo" },{ title: "September", artist: "Earth, Wind & Fire" },{ title: "Can't Stop the Feeling", artist: "Justin Timberlake" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" }],
-    ritual: "Before you drink, name one thing that is genuinely, quietly good in your life right now.",
+    tracks: [{ title: "Good as Hell", artist: "Lizzo" },{ title: "September", artist: "Earth, Wind & Fire" },{ title: "Pasadena", artist: "La Femme" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" }],
+    ritual: "Before you drink, name one thing that is genuinely, quietly good in your life right now.", ritualES: 'Antes de beber, nombra algo que sea genuina y silenciosamente bueno en tu vida ahora mismo.',
     moods: ['joyful','grounded','expansive','tender']
   },
   tenofcups: {
-    number: "Ten of Cups", name: "Ten of Cups", subtitle: "The lasting peace", symbol: "🌈", suit: "cups",
+    number: "Cups · X", name: "Ten of Cups", subtitle: "The lasting peace", symbol: "🌈", suit: "cups",
     archetype: "Two figures stand together beneath a rainbow arc of cups. Children dance. This is the life well-made.",
     body: "This is the card of deep, earned peace — not the absence of difficulty, but the presence of what truly matters. Your music is a celebration of the life you're building.",
     teas: ['rooiboschai','chamomile','earlgrey'],
-    tracks: [{ title: "Such Great Heights", artist: "The Postal Service" },{ title: "Here Comes the Sun", artist: "The Beatles" },{ title: "Lover", artist: "Taylor Swift" },{ title: "September", artist: "Earth, Wind & Fire" }],
-    ritual: "Name three people who belong in this picture with you.",
+    tracks: [{ title: "Such Great Heights", artist: "The Postal Service" },{ title: "Amor, Amor, Amor", artist: "Natalia Lafourcade" },{ title: "Lover", artist: "Taylor Swift" },{ title: "September", artist: "Earth, Wind & Fire" }],
+    ritual: "Name three people who belong in this picture with you.", ritualES: 'Nombra tres personas que pertenezcan a esta imagen contigo.',
     moods: ['joyful','flowing','tender','grounded']
   },
   pageofcups: {
-    number: "Page of Cups", name: "Page of Cups", subtitle: "The dreaming messenger", symbol: "🐟", suit: "cups",
+    number: "Cups · Page", name: "Page of Cups", subtitle: "The dreaming messenger", symbol: "🐟", suit: "cups",
     archetype: "A young figure holds a cup — and from it, a fish peers back. A message from the unconscious, delivered with delight.",
     body: "Something unexpected is coming through — a feeling, an idea, an intuition that makes no logical sense and is probably right. Your music is that fish. Pay attention.",
     teas: ['jasmine','greenrooibos','fruittisane'],
     tracks: [{ title: "Naive", artist: "The Kooks" },{ title: "Pure Imagination", artist: "Gene Wilder" },{ title: "Comptine d'un autre été", artist: "Yann Tiersen" },{ title: "Budapest", artist: "George Ezra" }],
-    ritual: "Write down whatever comes without editing it. The Page never edits.",
+    ritual: "Write down whatever comes without editing it. The Page never edits.", ritualES: 'Escribe lo que venga sin editarlo. El Paje nunca edita.',
     moods: ['playful','searching','tender','in-between']
   },
   knightofcups: {
-    number: "Knight of Cups", name: "Knight of Cups", subtitle: "The romantic quest", symbol: "🏇", suit: "cups",
+    number: "Cups · Knight", name: "Knight of Cups", subtitle: "The romantic quest", symbol: "🏇", suit: "cups",
     archetype: "He rides slowly, cup raised, winged helmet — a knight of feeling, not war. He follows the heart wherever it leads.",
     body: "The Knight of Cups moves toward what moves them. Your music is swept up in something right now — a feeling, a longing, a beautiful direction. Follow it.",
     teas: ['jasmine','rooiboschai','oolong'],
-    tracks: [{ title: "Lover", artist: "Taylor Swift" },{ title: "First Day of My Life", artist: "Bright Eyes" },{ title: "River", artist: "Leon Bridges" },{ title: "To Be Alone With You", artist: "Sufjan Stevens" }],
-    ritual: "Let the most romantic track play all the way through without interruption.",
+    tracks: [{ title: "Pulaski at Night", artist: "Andrew Bird" },{ title: "First Day of My Life", artist: "Bright Eyes" },{ title: "River", artist: "Leon Bridges" },{ title: "To Be Alone With You", artist: "Sufjan Stevens" }],
+    ritual: "Let the most romantic track play all the way through without interruption.", ritualES: 'Deja que la canción más romántica suene hasta el final sin interrupciones.',
     moods: ['tender','searching','flowing','expansive']
   },
   queenofcups: {
-    number: "Queen of Cups", name: "Queen of Cups", subtitle: "The still depths", symbol: "🪬", suit: "cups",
+    number: "Cups · Queen", name: "Queen of Cups", subtitle: "The still depths", symbol: "🪬", suit: "cups",
     archetype: "She sits at the water's edge, a closed cup in her hands. She feels everything — and chooses what to give.",
     body: "The Queen of Cups holds enormous feeling with enormous grace. Your music right now is emotionally intelligent — it knows the difference between feeling and drowning.",
     teas: ['chamomile','greenrooibos','jasmine'],
     tracks: [{ title: "On the Nature of Daylight", artist: "Max Richter" },{ title: "Be My Husband", artist: "Nina Simone" },{ title: "Experience", artist: "Ludovico Einaudi" },{ title: "Possibility", artist: "Lykke Li" }],
-    ritual: "Brew the tea slowly and sit beside something with water — a glass, a window in the rain, anything.",
+    ritual: "Brew the tea slowly and sit beside something with water — a glass, a window in the rain, anything.", ritualES: 'Prepara el té despacio y siéntate junto a algo con agua — un vaso, una ventana bajo la lluvia, lo que sea.',
     moods: ['introspective','tender','flowing','melancholic']
   },
   kingofcups: {
-    number: "King of Cups", name: "King of Cups", subtitle: "The mastered heart", symbol: "👑", suit: "cups",
+    number: "Cups · King", name: "King of Cups", subtitle: "The mastered heart", symbol: "👑", suit: "cups",
     archetype: "He sits on his throne amid the waves — still. Around him, the sea moves. He does not.",
     body: "The King of Cups is emotional mastery — not suppression, but deep governance of the inner life. Your music holds that quality today: powerful feeling, held with calm.",
     teas: ['earlgrey','hojicha','rooiboschai'],
     tracks: [{ title: "Sinner Man", artist: "Nina Simone" },{ title: "Strange Fruit", artist: "Billie Holiday" },{ title: "Adagio for Strings", artist: "Samuel Barber" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" }],
-    ritual: "Notice any feeling you've been resisting. Let it be there without acting on it.",
+    ritual: "Notice any feeling you've been resisting. Let it be there without acting on it.", ritualES: 'Nota cualquier sentimiento que hayas estado resistiendo. Deja que esté ahí sin actuar sobre él.',
     moods: ['solemn','grounded','flowing','introspective']
   },
 
   // ── MINOR ARCANA — WANDS (passion, creativity, action) ──
 
   aceofwands: {
-    number: "Ace of Wands", name: "Ace of Wands", subtitle: "The spark", symbol: "🔥", suit: "wands",
+    number: "Wands · Ace", name: "Ace of Wands", subtitle: "The spark", symbol: "🔥", suit: "wands",
     archetype: "A hand from a cloud holds a blossoming branch. Pure creative potential, unformed, urgent.",
     body: "Something is igniting in you. Your music is the first spark before the fire. Don't think about the shape of it yet — just let it catch.",
     teas: ['matcha','morningblend','sencha'],
     tracks: [{ title: "Baba O'Riley", artist: "The Who" },{ title: "Heads Will Roll", artist: "Yeah Yeah Yeahs" },{ title: "Power", artist: "Kanye West" },{ title: "Run Boy Run", artist: "Woodkid" }],
-    ritual: "Before you finish the cup, write down one thing you want to create. Don't decide how yet.",
+    ritual: "Before you finish the cup, write down one thing you want to create. Don't decide how yet.", ritualES: 'Antes de terminar la taza, escribe algo que quieras crear. Aún no decidas cómo.',
     moods: ['electric','fierce','awakening','expansive']
   },
   twoofwands: {
-    number: "Two of Wands", name: "Two of Wands", subtitle: "The horizon held", symbol: "🌍", suit: "wands",
+    number: "Wands · II", name: "Two of Wands", subtitle: "The horizon held", symbol: "🌍", suit: "wands",
     archetype: "He stands on the parapet, globe in hand, looking out. The world is small enough to hold. The decision is forming.",
     body: "You're at a threshold — you can see what's possible, but haven't crossed into it yet. Your music is the sound of standing at the edge. The view is worth it.",
     teas: ['sencha','oolong','morningblend'],
     tracks: [{ title: "The Times They Are A-Changin'", artist: "Bob Dylan" },{ title: "Budapest", artist: "George Ezra" },{ title: "Road Trippin'", artist: "Red Hot Chili Peppers" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" }],
-    ritual: "Name one thing that's possible for you that you haven't let yourself say out loud yet.",
+    ritual: "Name one thing that's possible for you that you haven't let yourself say out loud yet.", ritualES: 'Nombra algo que sea posible para ti y que aún no te hayas permitido decir en voz alta.',
     moods: ['searching','expansive','grounded','electric']
   },
   threeofwands: {
-    number: "Three of Wands", name: "Three of Wands", subtitle: "The ships going out", symbol: "⛵", suit: "wands",
+    number: "Wands · III", name: "Three of Wands", subtitle: "The ships going out", symbol: "⛵", suit: "wands",
     archetype: "He watches his ships sail toward the horizon. The plan is in motion. Now comes the waiting.",
     body: "Something you set in motion is underway. Your music has that quality of watching something go — proud, expectant, a little tender. Trust what you've sent out.",
     teas: ['sencha','earlgrey','greenrooibos'],
-    tracks: [{ title: "Holocene", artist: "Bon Iver" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "River", artist: "Leon Bridges" },{ title: "Clocks", artist: "Coldplay" }],
-    ritual: "Name one thing you've sent into the world that you don't yet have the result of. Let it go a little.",
+    tracks: [{ title: "Holocene", artist: "Bon Iver" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "River", artist: "Leon Bridges" },{ title: "Time", artist: "Jaguar Sun" }],
+    ritual: "Name one thing you've sent into the world that you don't yet have the result of. Let it go a little.", ritualES: 'Nombra algo que hayas enviado al mundo del que aún no tienes resultado. Suéltalo un poco.',
     moods: ['expansive','searching','grounded','flowing']
   },
   fourofwands: {
-    number: "Four of Wands", name: "Four of Wands", subtitle: "The homecoming", symbol: "🎊", suit: "wands",
+    number: "Wands · IV", name: "Four of Wands", subtitle: "The homecoming", symbol: "🎊", suit: "wands",
     archetype: "Four wands form an arch hung with flowers. Two figures celebrate beneath it. You made it.",
     body: "This is the card of the earned celebration — not luck, but the result of effort, now arrived. Your music is festive and warm. Let yourself enjoy what you've built.",
     teas: ['rooiboschai','fruittisane','earlgrey'],
-    tracks: [{ title: "September", artist: "Earth, Wind & Fire" },{ title: "Can't Stop the Feeling", artist: "Justin Timberlake" },{ title: "Dancing Queen", artist: "ABBA" },{ title: "Good as Hell", artist: "Lizzo" }],
-    ritual: "Brew this tea like it's a toast. Actually say cheers — to yourself, to what you've done.",
+    tracks: [{ title: "September", artist: "Earth, Wind & Fire" },{ title: "Float On", artist: "Modest Mouse" },{ title: "Dancing Queen", artist: "ABBA" },{ title: "Good as Hell", artist: "Lizzo" }],
+    ritual: "Brew this tea like it's a toast. Actually say cheers — to yourself, to what you've done.", ritualES: 'Prepara este té como si fuera un brindis. Di salud de verdad — por ti, por lo que has hecho.',
     moods: ['joyful','grounded','expansive','playful']
   },
   fiveofwands: {
-    number: "Five of Wands", name: "Five of Wands", subtitle: "The productive friction", symbol: "⚔️", suit: "wands",
+    number: "Wands · V", name: "Five of Wands", subtitle: "The productive friction", symbol: "⚔️", suit: "wands",
     archetype: "Five figures clash with staffs — but no one is hurt. This is sparring, not war. Creative competition. The chaos of many ideas at once.",
     body: "Something is stirring and noisy right now — competing impulses, ideas in friction, energy that hasn't found its shape yet. Your music is part of that. Let it be messy.",
     teas: ['matcha','morningblend','earlgrey'],
     tracks: [{ title: "Seven Nation Army", artist: "The White Stripes" },{ title: "Immigrant Song", artist: "Led Zeppelin" },{ title: "Survival", artist: "Eminem" },{ title: "TYRANT", artist: "Rosalía" }],
-    ritual: "Don't skip a single track in your playlist for the next 20 minutes. Let the friction stay.",
+    ritual: "Don't skip a single track in your playlist for the next 20 minutes. Let the friction stay.", ritualES: 'No saltes ninguna canción en los próximos 20 minutos. Deja que la fricción permanezca.',
     moods: ['fierce','electric','reckoning','grounded']
   },
   sixofwands: {
-    number: "Six of Wands", name: "Six of Wands", subtitle: "The return in victory", symbol: "🏆", suit: "wands",
+    number: "Wands · VI", name: "Six of Wands", subtitle: "The return in victory", symbol: "🏆", suit: "wands",
     archetype: "He rides through the crowd wearing a laurel wreath. They cheer. He has done the thing.",
     body: "You've earned something and it's okay to let it land. Your music is victorious today — not arrogant, just right. Take the lap.",
     teas: ['matcha','fruittisane','morningblend'],
     tracks: [{ title: "Eye of the Tiger", artist: "Survivor" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "Run Boy Run", artist: "Woodkid" },{ title: "Good as Hell", artist: "Lizzo" }],
-    ritual: "Name one thing you did well this week. Not big. Just true.",
+    ritual: "Name one thing you did well this week. Not big. Just true.", ritualES: 'Nombra algo que hayas hecho bien esta semana. No tiene que ser grande. Solo verdadero.',
     moods: ['joyful','fierce','expansive','awakening']
   },
   sevenofwands: {
-    number: "Seven of Wands", name: "Seven of Wands", subtitle: "The defended ground", symbol: "🛡️", suit: "wands",
+    number: "Wands · VII", name: "Seven of Wands", subtitle: "The defended ground", symbol: "🛡️", suit: "wands",
     archetype: "He stands on high ground, one wand raised against six from below. He holds his position.",
     body: "Something worth protecting is being tested. Your music has that quality of standing firm — not aggressive, but certain. You know what you're defending. That's enough.",
     teas: ['morningblend','matcha','earlgrey'],
     tracks: [{ title: "Mother", artist: "Pink Floyd" },{ title: "Survival", artist: "Eminem" },{ title: "Like a Stone", artist: "Audioslave" },{ title: "TYRANT", artist: "Rosalía" }],
-    ritual: "Name the one thing you're not willing to compromise on right now. Say it out loud.",
+    ritual: "Name the one thing you're not willing to compromise on right now. Say it out loud.", ritualES: 'Nombra la única cosa en la que no estás dispuesto/a a ceder ahora mismo. Dilo en voz alta.',
     moods: ['fierce','grounded','reckoning','solemn']
   },
   eightofwands: {
-    number: "Eight of Wands", name: "Eight of Wands", subtitle: "The swift arrival", symbol: "💨", suit: "wands",
+    number: "Wands · VIII", name: "Eight of Wands", subtitle: "The swift arrival", symbol: "💨", suit: "wands",
     archetype: "Eight wands fly through clear sky — nothing blocking them, everything in motion.",
     body: "Things are moving fast right now. Your music is aerodynamic — cut clean, direct, no excess. Let the speed carry you rather than resist it.",
     teas: ['sencha','matcha','morningblend'],
-    tracks: [{ title: "Clocks", artist: "Coldplay" },{ title: "Mr. Brightside", artist: "The Killers" },{ title: "Heads Will Roll", artist: "Yeah Yeah Yeahs" },{ title: "No Church in the Wild", artist: "Jay-Z & Kanye West" }],
-    ritual: "Set a timer for the length of your cup. See how much you can feel in that time.",
+    tracks: [{ title: "Asc. Scorpio", artist: "Oracle Sisters" },{ title: "Mr. Brightside", artist: "The Killers" },{ title: "Heads Will Roll", artist: "Yeah Yeah Yeahs" },{ title: "No Church in the Wild", artist: "Jay-Z & Kanye West" }],
+    ritual: "Set a timer for the length of your cup. See how much you can feel in that time.", ritualES: 'Pon un temporizador por el tiempo que dure tu taza. Observa cuánto puedes sentir en ese tiempo.',
     moods: ['electric','awakening','expansive','flowing']
   },
   nineofwands: {
-    number: "Nine of Wands", name: "Nine of Wands", subtitle: "The last stand", symbol: "🩹", suit: "wands",
+    number: "Wands · IX", name: "Nine of Wands", subtitle: "The last stand", symbol: "🩹", suit: "wands",
     archetype: "He is wounded, bandaged — but upright. Eight wands behind him. One more to go.",
     body: "You've come further than you think and there's a little left. Your music holds that quality — worn but not broken. The cup is almost full. Don't stop now.",
     teas: ['morningblend','hojicha','genmaicha'],
     tracks: [{ title: "Shake It Out", artist: "Florence + the Machine" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" },{ title: "Run Boy Run", artist: "Woodkid" },{ title: "Road Trippin'", artist: "Red Hot Chili Peppers" }],
-    ritual: "Acknowledge one thing that cost you. Then keep going.",
+    ritual: "Acknowledge one thing that cost you. Then keep going.", ritualES: 'Reconoce algo que te costó. Luego sigue adelante.',
     moods: ['fierce','grounded','melancholic','reckoning']
   },
   tenofwands: {
-    number: "Ten of Wands", name: "Ten of Wands", subtitle: "The carried burden", symbol: "🪵", suit: "wands",
+    number: "Wands · X", name: "Ten of Wands", subtitle: "The carried burden", symbol: "🪵", suit: "wands",
     archetype: "He carries ten heavy wands, back bent, nearly home. He can see the destination. The weight is real.",
     body: "You're carrying a lot right now. Your music feels heavy and purposeful. You don't have to drop everything — but you might be carrying some things for other people.",
     teas: ['hojicha','genmaicha','chamomile'],
     tracks: [{ title: "Adagio for Strings", artist: "Samuel Barber" },{ title: "How to Disappear Completely", artist: "Radiohead" },{ title: "Re: Stacks", artist: "Bon Iver" },{ title: "Pink Moon", artist: "Nick Drake" }],
-    ritual: "Name one thing you're carrying that isn't yours. Just name it.",
+    ritual: "Name one thing you're carrying that isn't yours. Just name it.", ritualES: 'Nombra algo que estés cargando que no es tuyo. Solo nómbralo.',
     moods: ['solemn','grounded','melancholic','suspended']
   },
   pageofwands: {
-    number: "Page of Wands", name: "Page of Wands", subtitle: "The enthusiast", symbol: "🦎", suit: "wands",
+    number: "Wands · Page", name: "Page of Wands", subtitle: "The enthusiast", symbol: "🦎", suit: "wands",
     archetype: "A young figure studies the wand with total fascination. The fire is new and everything about it is interesting.",
     body: "Pure creative enthusiasm, no filter. Your music right now is excited about everything — a little scattered, fully alive. Don't slow it down.",
     teas: ['sencha','matcha','fruittisane'],
     tracks: [{ title: "Naive", artist: "The Kooks" },{ title: "Budapest", artist: "George Ezra" },{ title: "Power", artist: "Kanye West" },{ title: "Baba O'Riley", artist: "The Who" }],
-    ritual: "Pick one new artist you've never listened to. Start there.",
+    ritual: "Pick one new artist you've never listened to. Start there.", ritualES: 'Elige un artista nuevo que nunca hayas escuchado. Empieza ahí.',
     moods: ['playful','electric','expansive','joyful']
   },
   knightofwands: {
-    number: "Knight of Wands", name: "Knight of Wands", subtitle: "The charging force", symbol: "🐎", suit: "wands",
+    number: "Wands · Knight", name: "Knight of Wands", subtitle: "The charging force", symbol: "🐎", suit: "wands",
     archetype: "He charges forward, wand raised, horse rearing — all fire and no brakes. The passion is real; the direction can wait.",
     body: "There's an urgency in your music right now — something that wants to move before it's ready. That energy is valuable. Channel it before you spend it.",
     teas: ['matcha','morningblend','earlgrey'],
     tracks: [{ title: "Immigrant Song", artist: "Led Zeppelin" },{ title: "No Church in the Wild", artist: "Jay-Z & Kanye West" },{ title: "Eye of the Tiger", artist: "Survivor" },{ title: "TYRANT", artist: "Rosalía" }],
-    ritual: "Let one track play at full volume. Then stop. That was the Knight. Now breathe.",
+    ritual: "Let one track play at full volume. Then stop. That was the Knight. Now breathe.", ritualES: 'Deja que una canción suene a todo volumen. Luego para. Eso fue el Caballero. Ahora respira.',
     moods: ['fierce','electric','awakening','playful']
   },
   queenofwands: {
-    number: "Queen of Wands", name: "Queen of Wands", subtitle: "The magnetic presence", symbol: "🌻", suit: "wands",
+    number: "Wands · Queen", name: "Queen of Wands", subtitle: "The magnetic presence", symbol: "🌻", suit: "wands",
     archetype: "She sits with a sunflower and a black cat — radiant, certain, wildly herself. People follow her not because she asks, but because she shines.",
     body: "Your music today has charisma — it takes up space without apology. The Queen of Wands knows who she is and that knowledge is the whole power.",
     teas: ['rooiboschai','matcha','jasmine'],
     tracks: [{ title: "Good as Hell", artist: "Lizzo" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "Be My Husband", artist: "Nina Simone" },{ title: "Power", artist: "Kanye West" }],
-    ritual: "Name one thing you do exceptionally well and don't apologise for knowing it.",
+    ritual: "Name one thing you do exceptionally well and don't apologise for knowing it.", ritualES: 'Nombra algo que hagas excepcionalmente bien y no te disculpes por saberlo.',
     moods: ['fierce','expansive','joyful','electric']
   },
   kingofwands: {
-    number: "King of Wands", name: "King of Wands", subtitle: "The visionary leader", symbol: "🦁", suit: "wands",
+    number: "Wands · King", name: "King of Wands", subtitle: "The visionary leader", symbol: "🦁", suit: "wands",
     archetype: "He sits forward on his throne — a lion at his feet, a salamander on his robe. He is not watching the fire. He is making it.",
     body: "The King of Wands is pure creative authority. Your music right now is leading something — an idea, a project, a version of yourself. Where are you taking it?",
     teas: ['morningblend','matcha','earlgrey'],
     tracks: [{ title: "Baba O'Riley", artist: "The Who" },{ title: "Run Boy Run", artist: "Woodkid" },{ title: "Power", artist: "Kanye West" },{ title: "Strange Fruit", artist: "Billie Holiday" }],
-    ritual: "Name the next thing you're going to make. Even if it's small. Especially if it's small.",
+    ritual: "Name the next thing you're going to make. Even if it's small. Especially if it's small.", ritualES: 'Nombra lo siguiente que vas a crear. Aunque sea pequeño. Especialmente si es pequeño.',
     moods: ['fierce','electric','grounded','expansive']
   },
 
   // ── MINOR ARCANA — SWORDS (thought, conflict, truth) ──
 
   aceofswords: {
-    number: "Ace of Swords", name: "Ace of Swords", subtitle: "The clear cut", symbol: "⚔️", suit: "swords",
+    number: "Swords · Ace", name: "Ace of Swords", subtitle: "The clear cut", symbol: "⚔️", suit: "swords",
     archetype: "A hand from a cloud holds an upright sword, wreathed in light. Truth, finally, unobstructed.",
     body: "Something is becoming clear. Your music has that quality — direct, cutting through the noise. The sword doesn't ask permission. Neither does clarity.",
     teas: ['sencha','matcha','greenrooibos'],
     tracks: [{ title: "Man in the Mirror", artist: "Michael Jackson" },{ title: "Like a Stone", artist: "Audioslave" },{ title: "Strange Fruit", artist: "Billie Holiday" },{ title: "Everything in Its Right Place", artist: "Radiohead" }],
-    ritual: "Write one true thing you've been softening. Say it plainly to yourself.",
+    ritual: "Write one true thing you've been softening. Say it plainly to yourself.", ritualES: 'Escribe algo verdadero que hayas estado suavizando. Dítelo claramente.',
     moods: ['reckoning','electric','awakening','fierce']
   },
   twoofswords: {
-    number: "Two of Swords", name: "Two of Swords", subtitle: "The blindfolded choice", symbol: "⚖️", suit: "swords",
+    number: "Swords · II", name: "Two of Swords", subtitle: "The blindfolded choice", symbol: "⚖️", suit: "swords",
     archetype: "Blindfolded, she holds two crossed swords against her chest. The sea is behind her. She knows more than she'll admit.",
     body: "You're holding two truths that seem to cancel each other out. Your music is in that tension — not resolving, just holding. Sometimes the most honest position is not choosing yet.",
     teas: ['chamomile','oolong','hojicha'],
     tracks: [{ title: "Weird Fishes / Arpeggi", artist: "Radiohead" },{ title: "Re: Stacks", artist: "Bon Iver" },{ title: "Retrograde", artist: "James Blake" },{ title: "Motion Picture Soundtrack", artist: "Radiohead" }],
-    ritual: "Name the two things. Don't try to resolve them today. Just write them both down.",
+    ritual: "Name the two things. Don't try to resolve them today. Just write them both down.", ritualES: 'Nombra las dos cosas. No intentes resolverlas hoy. Solo escríbelas.',
     moods: ['suspended','in-between','introspective','melancholic']
   },
   threeofswords: {
-    number: "Three of Swords", name: "Three of Swords", subtitle: "The heart's wound", symbol: "💔", suit: "swords",
+    number: "Swords · III", name: "Three of Swords", subtitle: "The heart's wound", symbol: "💔", suit: "swords",
     archetype: "Three swords pierce a red heart in a grey sky. No metaphor. Just the thing itself.",
     body: "This card doesn't soften it — something hurt. Your music is holding that wound with honesty. The grief is clean when it's allowed to be what it is.",
     teas: ['chamomile','hojicha','othertisane'],
     tracks: [{ title: "Death With Dignity", artist: "Sufjan Stevens" },{ title: "Skinny Love", artist: "Bon Iver" },{ title: "Strange Fruit", artist: "Billie Holiday" },{ title: "Pink Moon", artist: "Nick Drake" }],
-    ritual: "Don't skip the sad part. Let the music go there.",
+    ritual: "Don't skip the sad part. Let the music go there.", ritualES: 'No te saltes la parte triste. Deja que la música vaya ahí.',
     moods: ['melancholic','shadowed','solemn','introspective']
   },
   fourofswords: {
-    number: "Four of Swords", name: "Four of Swords", subtitle: "The necessary rest", symbol: "🛏️", suit: "swords",
+    number: "Swords · IV", name: "Four of Swords", subtitle: "The necessary rest", symbol: "🛏️", suit: "swords",
     archetype: "A knight lies on a tomb, hands clasped. Three swords on the wall, one beneath him. This is not defeat — this is recovery.",
     body: "Rest is the work right now. Your music has that quality — recuperative, restorative, not passive. The Four of Swords says: stop. You've earned it.",
     teas: ['chamomile','hojicha','greenrooibos'],
     tracks: [{ title: "On the Nature of Daylight", artist: "Max Richter" },{ title: "Experience", artist: "Ludovico Einaudi" },{ title: "Gymnopédie No.1", artist: "Erik Satie" },{ title: "Comptine d'un autre été", artist: "Yann Tiersen" }],
-    ritual: "Lie down while the first track plays. Completely flat. Let your body remember what rest is.",
+    ritual: "Lie down while the first track plays. Completely flat. Let your body remember what rest is.", ritualES: 'Acuéstate mientras suena la primera canción. Completamente plano/a. Deja que tu cuerpo recuerde qué es el descanso.',
     moods: ['suspended','introspective','melancholic','solemn']
   },
   fiveofswords: {
-    number: "Five of Swords", name: "Five of Swords", subtitle: "The hollow victory", symbol: "😤", suit: "swords",
+    number: "Swords · V", name: "Five of Swords", subtitle: "The hollow victory", symbol: "😤", suit: "swords",
     archetype: "He collects the swords of the defeated. He won. The others walk away. And yet — something in his face.",
     body: "Not all wins feel like wins. Your music is asking: what did it cost, and was it worth it? The Five of Swords knows the difference between winning and being right.",
     teas: ['earlgrey','sencha','hojicha'],
     tracks: [{ title: "Karma Police", artist: "Radiohead" },{ title: "Man in the Mirror", artist: "Michael Jackson" },{ title: "Everybody Wants to Rule the World", artist: "Tears for Fears" },{ title: "Like a Stone", artist: "Audioslave" }],
-    ritual: "Name one conflict where you were right but it didn't help. Just acknowledge it.",
+    ritual: "Name one conflict where you were right but it didn't help. Just acknowledge it.", ritualES: 'Nombra un conflicto en el que tenías razón pero no ayudó. Solo reconócelo.',
     moods: ['reckoning','shadowed','solemn','melancholic']
   },
   sixofswords: {
-    number: "Six of Swords", name: "Six of Swords", subtitle: "The passage to calmer water", symbol: "⛵", suit: "swords",
+    number: "Swords · VI", name: "Six of Swords", subtitle: "The passage to calmer water", symbol: "⛵", suit: "swords",
     archetype: "A ferryman carries two figures across water. Six swords stand in the bow. They're not there yet — but they're moving away from the storm.",
     body: "Things are getting calmer. Not fixed, not finished — but moving away from the roughest part. Your music understands the relief of water smoothing out.",
     teas: ['greenrooibos','chamomile','oolong'],
     tracks: [{ title: "Blue Ridge Mountains", artist: "Fleet Foxes" },{ title: "Lua", artist: "Bright Eyes" },{ title: "Possibility", artist: "Lykke Li" },{ title: "River", artist: "Leon Bridges" }],
-    ritual: "Breathe out slowly as you sip. Let whatever you've been carrying in your shoulders go.",
+    ritual: "Breathe out slowly as you sip. Let whatever you've been carrying in your shoulders go.", ritualES: 'Exhala despacio mientras bebes. Deja ir lo que hayas estado cargando en los hombros.',
     moods: ['melancholic','flowing','searching','in-between']
   },
   sevenofswords: {
-    number: "Seven of Swords", name: "Seven of Swords", subtitle: "The strategic retreat", symbol: "🤫", suit: "swords",
+    number: "Swords · VII", name: "Seven of Swords", subtitle: "The strategic retreat", symbol: "🤫", suit: "swords",
     archetype: "He slips away with five swords — not all of them, just enough. Sometimes the clever move is the quiet one.",
     body: "There's something strategic happening in your music right now — a calculated withdrawal, a held-back truth. The Seven of Swords asks: what are you not saying, and why?",
     teas: ['oolong','sencha','genmaicha'],
     tracks: [{ title: "Retrograde", artist: "James Blake" },{ title: "Weird Fishes / Arpeggi", artist: "Radiohead" },{ title: "Bad Guy", artist: "Billie Eilish" },{ title: "Sinner Man", artist: "Nina Simone" }],
-    ritual: "Name one thing you're keeping to yourself. It doesn't need to be shared — just acknowledged.",
+    ritual: "Name one thing you're keeping to yourself. It doesn't need to be shared — just acknowledged.", ritualES: 'Nombra algo que te estés guardando. No necesita ser compartido — solo reconocido.',
     moods: ['shadowed','introspective','suspended','in-between']
   },
   eightofswords: {
-    number: "Eight of Swords", name: "Eight of Swords", subtitle: "The self-made prison", symbol: "🙈", suit: "swords",
+    number: "Swords · VIII", name: "Eight of Swords", subtitle: "The self-made prison", symbol: "🙈", suit: "swords",
     archetype: "She stands blindfolded, loosely bound, surrounded by swords. None of them touch her. She could walk away. She doesn't know that yet.",
     body: "The cage is made of thoughts, not walls. Your music is circling the edges of a belief that's keeping you smaller than you are. The binding is loose. Just so you know.",
     teas: ['chamomile','othertisane','hojicha'],
     tracks: [{ title: "How to Disappear Completely", artist: "Radiohead" },{ title: "Motion Picture Soundtrack", artist: "Radiohead" },{ title: "Possibility", artist: "Lykke Li" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" }],
-    ritual: "Name one story you tell yourself about yourself that might not be true.",
+    ritual: "Name one story you tell yourself about yourself that might not be true.", ritualES: 'Nombra una historia que te cuentes sobre ti que quizás no sea verdad.',
     moods: ['suspended','shadowed','introspective','melancholic']
   },
   nineofswords: {
-    number: "Nine of Swords", name: "Nine of Swords", subtitle: "The 3am mind", symbol: "😰", suit: "swords",
+    number: "Swords · IX", name: "Nine of Swords", subtitle: "The 3am mind", symbol: "😰", suit: "swords",
     archetype: "She sits up in bed, head in hands, nine swords above her. The quilt has roses on it. The fear is greater than the fact.",
     body: "The 3am thoughts — the ones that feel like truth when they're just a mind that's tired. Your music is honest about anxiety. That honesty is itself a relief.",
     teas: ['chamomile','othertisane','greenrooibos'],
     tracks: [{ title: "Skinny Love", artist: "Bon Iver" },{ title: "Pink Moon", artist: "Nick Drake" },{ title: "Casimir Pulaski Day", artist: "Sufjan Stevens" },{ title: "Possibility", artist: "Lykke Li" }],
-    ritual: "Write down the worst thought. Now write one true thing that contradicts it.",
+    ritual: "Write down the worst thought. Now write one true thing that contradicts it.", ritualES: 'Escribe el peor pensamiento. Ahora escribe algo verdadero que lo contradiga.',
     moods: ['suspended','shadowed','melancholic','introspective']
   },
   tenofswords: {
-    number: "Ten of Swords", name: "Ten of Swords", subtitle: "The final fall", symbol: "🌅", suit: "swords",
+    number: "Swords · X", name: "Ten of Swords", subtitle: "The final fall", symbol: "🌅", suit: "swords",
     archetype: "Ten swords in the back. Dramatic, yes. But the sky at the horizon is gold — this is always dawn after the worst night.",
     body: "This is the rock-bottom card — and also the turning point. It can't get worse from here, which means everything that comes next is upward. Your music knows this story.",
     teas: ['hojicha','genmaicha','morningblend'],
     tracks: [{ title: "Shake It Out", artist: "Florence + the Machine" },{ title: "Death With Dignity", artist: "Sufjan Stevens" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "Everything in Its Right Place", artist: "Radiohead" }],
-    ritual: "Name what ended. Then name what begins.",
+    ritual: "Name what ended. Then name what begins.", ritualES: 'Nombra lo que terminó. Luego nombra lo que empieza.',
     moods: ['shadowed','melancholic','awakening','reckoning']
   },
   pageofswords: {
-    number: "Page of Swords", name: "Page of Swords", subtitle: "The sharp curiosity", symbol: "🔍", suit: "swords",
+    number: "Swords · Page", name: "Page of Swords", subtitle: "The sharp curiosity", symbol: "🔍", suit: "swords",
     archetype: "Young, sword raised, wind in their hair — alert to everything, committed to nothing yet. All question, no conclusion.",
     body: "Your mind is quick and restless today. Your music reflects that cutting alertness — it's asking questions before it has answers. That's exactly right.",
     teas: ['sencha','matcha','greenrooibos'],
     tracks: [{ title: "Mr. Brightside", artist: "The Killers" },{ title: "Karma Police", artist: "Radiohead" },{ title: "Everything in Its Right Place", artist: "Radiohead" },{ title: "Naive", artist: "The Kooks" }],
-    ritual: "Ask one question you've been afraid to ask. Write it down. You don't need the answer today.",
+    ritual: "Ask one question you've been afraid to ask. Write it down. You don't need the answer today.", ritualES: 'Haz una pregunta que hayas tenido miedo de hacer. Escríbela. No necesitas la respuesta hoy.',
     moods: ['searching','electric','reckoning','introspective']
   },
   knightofswords: {
-    number: "Knight of Swords", name: "Knight of Swords", subtitle: "The unstoppable charge", symbol: "💨", suit: "swords",
+    number: "Swords · Knight", name: "Knight of Swords", subtitle: "The unstoppable charge", symbol: "💨", suit: "swords",
     archetype: "He charges at full gallop, sword ahead — birds scatter, clouds split. Nothing in his way has a chance.",
     body: "The Knight of Swords is pure mental momentum — ideas at full speed, argument in motion. Your music is fast and certain today. Use that certainty before it becomes recklessness.",
     teas: ['matcha','sencha','morningblend'],
     tracks: [{ title: "Immigrant Song", artist: "Led Zeppelin" },{ title: "Heads Will Roll", artist: "Yeah Yeah Yeahs" },{ title: "No Church in the Wild", artist: "Jay-Z & Kanye West" },{ title: "Survival", artist: "Eminem" }],
-    ritual: "Write everything in your head down as fast as you can. Don't edit. Just let it come.",
+    ritual: "Write everything in your head down as fast as you can. Don't edit. Just let it come.", ritualES: 'Escribe todo lo que hay en tu cabeza tan rápido como puedas. No edites. Solo deja que fluya.',
     moods: ['electric','fierce','reckoning','awakening']
   },
   queenofswords: {
-    number: "Queen of Swords", name: "Queen of Swords", subtitle: "The clear-eyed one", symbol: "🗡️", suit: "swords",
+    number: "Swords · Queen", name: "Queen of Swords", subtitle: "The clear-eyed one", symbol: "🗡️", suit: "swords",
     archetype: "She sits high on her throne, sword raised, one hand extended — she sees everything and hides nothing. She has known sorrow and it made her precise.",
     body: "The Queen of Swords has earned her clarity. Your music today is exact and unsentimental — it doesn't soften things, it sees them. That kind of truth is a gift.",
     teas: ['sencha','earlgrey','greenrooibos'],
     tracks: [{ title: "Strange Fruit", artist: "Billie Holiday" },{ title: "Man in the Mirror", artist: "Michael Jackson" },{ title: "Be My Husband", artist: "Nina Simone" },{ title: "Like a Stone", artist: "Audioslave" }],
-    ritual: "Name one thing you know to be true that you've been hedging. Say it plainly.",
+    ritual: "Name one thing you know to be true that you've been hedging. Say it plainly.", ritualES: 'Nombra algo que sabes que es verdad pero que has estado evadiendo. Dilo claramente.',
     moods: ['reckoning','solemn','fierce','introspective']
   },
   kingofswords: {
-    number: "King of Swords", name: "King of Swords", subtitle: "The authority of truth", symbol: "⚖️", suit: "swords",
+    number: "Swords · King", name: "King of Swords", subtitle: "The authority of truth", symbol: "⚖️", suit: "swords",
     archetype: "He sits upright, sword raised, eyes forward. He rules by intellect and principle. He is not cold — he is just.",
     body: "The King of Swords thinks clearly and acts on principle. Your music today has that quality — rigorous, fair, without sentimentality. Sometimes the clearest thing is the kindest.",
     teas: ['sencha','matcha','earlgrey'],
     tracks: [{ title: "Adagio for Strings", artist: "Samuel Barber" },{ title: "The Sound of Silence", artist: "Simon & Garfunkel" },{ title: "Strange Fruit", artist: "Billie Holiday" },{ title: "Karma Police", artist: "Radiohead" }],
-    ritual: "Make one decision today that you've been deferring. The King doesn't wait.",
+    ritual: "Make one decision today that you've been deferring. The King doesn't wait.", ritualES: 'Toma una decisión hoy que hayas estado postergando. El Rey no espera.',
     moods: ['solemn','reckoning','grounded','fierce']
   },
 
   // ── MINOR ARCANA — PENTACLES (body, work, earth, material) ──
 
   aceofpentacles: {
-    number: "Ace of Pentacles", name: "Ace of Pentacles", subtitle: "The golden seed", symbol: "🌱", suit: "pentacles",
+    number: "Pentacles · Ace", name: "Ace of Pentacles", subtitle: "The golden seed", symbol: "🌱", suit: "pentacles",
     archetype: "A hand from a cloud offers a single gold coin above a flowering garden. The beginning of something solid.",
     body: "A real opportunity is here — not glamorous, but good. Your music today feels grounded and promising. Something worth building is beginning.",
     teas: ['genmaicha','morningblend','earlgrey'],
     tracks: [{ title: "Holocene", artist: "Bon Iver" },{ title: "The Wood Song", artist: "Indigo Girls" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" },{ title: "River", artist: "Leon Bridges" }],
-    ritual: "Name one small, concrete thing you can do today that your future self will thank you for.",
+    ritual: "Name one small, concrete thing you can do today that your future self will thank you for.", ritualES: 'Nombra algo pequeño y concreto que puedas hacer hoy y que tu yo futuro te agradecerá.',
     moods: ['grounded','searching','expansive','awakening']
   },
   twoofpentacles: {
-    number: "Two of Pentacles", name: "Two of Pentacles", subtitle: "The juggle", symbol: "♾️", suit: "pentacles",
+    number: "Pentacles · II", name: "Two of Pentacles", subtitle: "The juggle", symbol: "♾️", suit: "pentacles",
     archetype: "He dances as he balances two coins in a figure-eight. Ships rise and fall on the waves behind him. The balance is real — and precarious.",
     body: "You're managing a lot and doing it surprisingly well. Your music reflects that constant adjustment — nothing is stable, and you've made peace with that. For now.",
     teas: ['earlgrey','genmaicha','rooiboschai'],
-    tracks: [{ title: "Clocks", artist: "Coldplay" },{ title: "The Times They Are A-Changin'", artist: "Bob Dylan" },{ title: "Retrograde", artist: "James Blake" },{ title: "Road Trippin'", artist: "Red Hot Chili Peppers" }],
-    ritual: "Name the two things you're currently balancing. Acknowledge that you're doing it.",
+    tracks: [{ title: "Alright", artist: "Kitty Craft" },{ title: "The Times They Are A-Changin'", artist: "Bob Dylan" },{ title: "Retrograde", artist: "James Blake" },{ title: "Road Trippin'", artist: "Red Hot Chili Peppers" }],
+    ritual: "Name the two things you're currently balancing. Acknowledge that you're doing it.", ritualES: 'Nombra las dos cosas que estás equilibrando ahora mismo. Reconoce que lo estás haciendo.',
     moods: ['grounded','electric','flowing','searching']
   },
   threeofpentacles: {
-    number: "Three of Pentacles", name: "Three of Pentacles", subtitle: "The collaborative craft", symbol: "🏛️", suit: "pentacles",
+    number: "Pentacles · III", name: "Three of Pentacles", subtitle: "The collaborative craft", symbol: "🏛️", suit: "pentacles",
     archetype: "An artisan works on a cathedral while two figures consult the plans. Three different roles, one shared vision.",
     body: "Great things are built with other people. Your music today is collaborative in spirit — it knows that what's made together is bigger than what's made alone.",
     teas: ['morningblend','earlgrey','sencha'],
     tracks: [{ title: "Two of Us", artist: "The Beatles" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" },{ title: "In the Aeroplane Over the Sea", artist: "Neutral Milk Hotel" },{ title: "The Wood Song", artist: "Indigo Girls" }],
-    ritual: "Name someone whose work you want to acknowledge today. Tell them.",
+    ritual: "Name someone whose work you want to acknowledge today. Tell them.", ritualES: 'Nombra a alguien cuyo trabajo quieras reconocer hoy. Díselo.',
     moods: ['grounded','joyful','expansive','tender']
   },
   fourofpentacles: {
-    number: "Four of Pentacles", name: "Four of Pentacles", subtitle: "The held grip", symbol: "🤐", suit: "pentacles",
+    number: "Pentacles · IV", name: "Four of Pentacles", subtitle: "The held grip", symbol: "🤐", suit: "pentacles",
     archetype: "He clutches a coin to his crown, stands on two, holds one to his chest. He has built something — and is terrified of losing it.",
     body: "There's some clutching happening — of things, of control, of a version of yourself that might need loosening. Your music today is the sound of holding on. What would it feel like to open the hands slightly?",
     teas: ['hojicha','genmaicha','chamomile'],
     tracks: [{ title: "How to Disappear Completely", artist: "Radiohead" },{ title: "Motion Picture Soundtrack", artist: "Radiohead" },{ title: "Re: Stacks", artist: "Bon Iver" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" }],
-    ritual: "Name one thing you're holding too tightly. You don't have to release it. Just notice the grip.",
+    ritual: "Name one thing you're holding too tightly. You don't have to release it. Just notice the grip.", ritualES: 'Nombra algo a lo que te estás aferrando demasiado. No tienes que soltarlo. Solo nota el apretón.',
     moods: ['grounded','suspended','solemn','introspective']
   },
   fiveofpentacles: {
-    number: "Five of Pentacles", name: "Five of Pentacles", subtitle: "The cold outside", symbol: "❄️", suit: "pentacles",
+    number: "Pentacles · V", name: "Five of Pentacles", subtitle: "The cold outside", symbol: "❄️", suit: "pentacles",
     archetype: "Two figures in the snow, outside a lit stained-glass window. The warmth is there — they just haven't thought to try the door.",
     body: "There's a scarcity feeling — material, emotional, spiritual. Your music understands lack. But the window is lit: the door is often closer than it looks.",
     teas: ['rooiboschai','chamomile','hojicha'],
     tracks: [{ title: "Skinny Love", artist: "Bon Iver" },{ title: "Pink Moon", artist: "Nick Drake" },{ title: "The Night Will Always Win", artist: "Manchester Orchestra" },{ title: "Lua", artist: "Bright Eyes" }],
-    ritual: "Name one resource, person or option you've been overlooking.",
+    ritual: "Name one resource, person or option you've been overlooking.", ritualES: 'Nombra un recurso, persona u opción que hayas estado pasando por alto.',
     moods: ['melancholic','shadowed','searching','suspended']
   },
   sixofpentacles: {
-    number: "Six of Pentacles", name: "Six of Pentacles", subtitle: "The balanced giving", symbol: "⚖️", suit: "pentacles",
+    number: "Pentacles · VI", name: "Six of Pentacles", subtitle: "The balanced giving", symbol: "⚖️", suit: "pentacles",
     archetype: "A merchant holds scales in one hand and distributes coins with the other. He gives — but fairly. Generosity with discernment.",
     body: "Something is being exchanged today — generosity, resources, time. Your music understands reciprocity. Give what you can. Receive what's offered.",
     teas: ['earlgrey','rooiboschai','genmaicha'],
     tracks: [{ title: "River", artist: "Leon Bridges" },{ title: "Make You Feel My Love", artist: "Adele" },{ title: "Let It Be", artist: "The Beatles" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" }],
-    ritual: "Do one small generous thing today that asks nothing in return.",
+    ritual: "Do one small generous thing today that asks nothing in return.", ritualES: 'Haz algo pequeño y generoso hoy que no pida nada a cambio.',
     moods: ['tender','grounded','flowing','joyful']
   },
   sevenofpentacles: {
-    number: "Seven of Pentacles", name: "Seven of Pentacles", subtitle: "The patient tending", symbol: "🌿", suit: "pentacles",
+    number: "Pentacles · VII", name: "Seven of Pentacles", subtitle: "The patient tending", symbol: "🌿", suit: "pentacles",
     archetype: "He leans on his hoe and looks at what he's grown. Six coins on the vine. One in his hand. This is the long work.",
     body: "The Seven of Pentacles is about the long game — tending something that isn't ready yet. Your music today has that patient quality. The results are coming. They take time.",
     teas: ['genmaicha','hojicha','sencha'],
-    tracks: [{ title: "Holocene", artist: "Bon Iver" },{ title: "The Wood Song", artist: "Indigo Girls" },{ title: "Blue Ridge Mountains", artist: "Fleet Foxes" },{ title: "In the Aeroplane Over the Sea", artist: "Neutral Milk Hotel" }],
-    ritual: "Name something you're growing that you can't rush.",
+    tracks: [{ title: "Lady and Man", artist: "Khruangbin" },{ title: "The Wood Song", artist: "Indigo Girls" },{ title: "Blue Ridge Mountains", artist: "Fleet Foxes" },{ title: "In the Aeroplane Over the Sea", artist: "Neutral Milk Hotel" }],
+    ritual: "Name something you're growing that you can't rush.", ritualES: 'Nombra algo que estés cultivando y que no puedes apresurar.',
     moods: ['grounded','searching','flowing','introspective']
   },
   eightofpentacles: {
-    number: "Eight of Pentacles", name: "Eight of Pentacles", subtitle: "The devoted practice", symbol: "🔨", suit: "pentacles",
+    number: "Pentacles · VIII", name: "Eight of Pentacles", subtitle: "The devoted practice", symbol: "🔨", suit: "pentacles",
     archetype: "An artisan works on coin after coin, focused, alone. The city is far away. The work is the world.",
     body: "This is the card of mastery through repetition — the unglamorous daily practice. Your music today is about craft, not inspiration. The discipline is the gift.",
     teas: ['matcha','sencha','morningblend'],
     tracks: [{ title: "Gymnopédie No.1", artist: "Erik Satie" },{ title: "Experience", artist: "Ludovico Einaudi" },{ title: "On the Nature of Daylight", artist: "Max Richter" },{ title: "Comptine d'un autre été", artist: "Yann Tiersen" }],
-    ritual: "Do the work you've been putting off. Even ten minutes. The Eight of Pentacles doesn't need motivation — just the starting.",
+    ritual: "Do the work you've been putting off. Even ten minutes. The Eight of Pentacles doesn't need motivation — just the starting.", ritualES: 'Haz el trabajo que has estado postergando. Aunque sean diez minutos. El Ocho de Oros no necesita motivación — solo el comienzo.',
     moods: ['grounded','solemn','introspective','electric']
   },
   nineofpentacles: {
-    number: "Nine of Pentacles", name: "Nine of Pentacles", subtitle: "The earned abundance", symbol: "🌺", suit: "pentacles",
+    number: "Pentacles · IX", name: "Nine of Pentacles", subtitle: "The earned abundance", symbol: "🌺", suit: "pentacles",
     archetype: "She stands alone in her vineyard, falcon on her wrist, nine coins around her. Self-sufficient, satisfied, entirely her own.",
     body: "This is what you built — for yourself, by yourself. Your music today is the sound of self-possession. You don't need permission. You already own it.",
     teas: ['jasmine','rooiboschai','greenrooibos'],
-    tracks: [{ title: "Good as Hell", artist: "Lizzo" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" },{ title: "Be My Husband", artist: "Nina Simone" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" }],
-    ritual: "Name three things you've built or earned yourself. No one gave them to you.",
+    tracks: [{ title: "Love Letters", artist: "Metronomy" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" },{ title: "Be My Husband", artist: "Nina Simone" },{ title: "Dog Days Are Over", artist: "Florence + the Machine" }],
+    ritual: "Name three things you've built or earned yourself. No one gave them to you.", ritualES: 'Nombra tres cosas que hayas construido o ganado tú mismo/a. Nadie te las regaló.',
     moods: ['grounded','joyful','expansive','solemn']
   },
   tenofpentacles: {
-    number: "Ten of Pentacles", name: "Ten of Pentacles", subtitle: "The lasting legacy", symbol: "🏡", suit: "pentacles",
+    number: "Pentacles · X", name: "Ten of Pentacles", subtitle: "The lasting legacy", symbol: "🏡", suit: "pentacles",
     archetype: "Three generations, two dogs, ten coins. Everything that has been built is still standing. The abundance is structural.",
     body: "The Ten of Pentacles is about what endures — the kind of wealth that is also a home. Your music today is grounded in something that lasts.",
     teas: ['earlgrey','genmaicha','rooiboschai'],
     tracks: [{ title: "In the Aeroplane Over the Sea", artist: "Neutral Milk Hotel" },{ title: "The Wood Song", artist: "Indigo Girls" },{ title: "Dirt", artist: "Bahamas" },{ title: "Holocene", artist: "Bon Iver" }],
-    ritual: "Name one person whose presence in your life has been a form of wealth.",
+    ritual: "Name one person whose presence in your life has been a form of wealth.", ritualES: 'Nombra a una persona cuya presencia en tu vida ha sido una forma de riqueza.',
     moods: ['grounded','solemn','tender','flowing']
   },
   pageofpentacles: {
-    number: "Page of Pentacles", name: "Page of Pentacles", subtitle: "The slow study", symbol: "📚", suit: "pentacles",
+    number: "Pentacles · Page", name: "Page of Pentacles", subtitle: "The slow study", symbol: "📚", suit: "pentacles",
     archetype: "A young figure holds up a coin and examines it with total focus. The earth is green beneath them. They are learning.",
     body: "The Page of Pentacles is in no hurry — this is careful, grounded learning. Your music today is about paying attention to the material world: what it asks, what it offers.",
     teas: ['genmaicha','sencha','hojicha'],
     tracks: [{ title: "Gymnopédie No.1", artist: "Erik Satie" },{ title: "Experience", artist: "Ludovico Einaudi" },{ title: "Holocene", artist: "Bon Iver" },{ title: "Dirt", artist: "Bahamas" }],
-    ritual: "Learn one small thing today. Look something up. Read one page. The Page always studies.",
+    ritual: "Learn one small thing today. Look something up. Read one page. The Page always studies.", ritualES: 'Aprende algo pequeño hoy. Busca algo. Lee una página. El Paje siempre estudia.',
     moods: ['grounded','introspective','searching','solemn']
   },
   knightofpentacles: {
-    number: "Knight of Pentacles", name: "Knight of Pentacles", subtitle: "The steadfast worker", symbol: "🐂", suit: "pentacles",
+    number: "Pentacles · Knight", name: "Knight of Pentacles", subtitle: "The steadfast worker", symbol: "🐂", suit: "pentacles",
     archetype: "His horse is still. He studies the coin in his hand with patience. He will get there — he always does. He just won't be rushed.",
     body: "The Knight of Pentacles moves slowly and finishes everything. Your music today has that quality of reliable, unhurried effort. The tortoise wins.",
     teas: ['morningblend','genmaicha','earlgrey'],
     tracks: [{ title: "The Wood Song", artist: "Indigo Girls" },{ title: "In the Aeroplane Over the Sea", artist: "Neutral Milk Hotel" },{ title: "Lua", artist: "Bright Eyes" },{ title: "Road Trippin'", artist: "Red Hot Chili Peppers" }],
-    ritual: "Finish one thing today that's been 90% done for too long.",
+    ritual: "Finish one thing today that's been 90% done for too long.", ritualES: 'Termina algo hoy que ha estado al 90% durante demasiado tiempo.',
     moods: ['grounded','solemn','flowing','introspective']
   },
   queenofpentacles: {
-    number: "Queen of Pentacles", name: "Queen of Pentacles", subtitle: "The nourishing earth", symbol: "🌾", suit: "pentacles",
+    number: "Pentacles · Queen", name: "Queen of Pentacles", subtitle: "The nourishing earth", symbol: "🌾", suit: "pentacles",
     archetype: "She sits in a lush garden, a hare at her feet, a coin in her lap. She tends everything. Everything thrives.",
     body: "The Queen of Pentacles is the card of radical nourishment — of yourself and of what you love. Your music today is full of that warm, earthy care. Let it tend to you.",
     teas: ['rooiboschai','chamomile','earlgrey'],
     tracks: [{ title: "Blue Ridge Mountains", artist: "Fleet Foxes" },{ title: "Make You Feel My Love", artist: "Adele" },{ title: "Let It Be", artist: "The Beatles" },{ title: "Golden Hour", artist: "KACEY MUSGRAVES" }],
-    ritual: "Do one thing today that is purely nourishing — for your body, your space, your peace.",
+    ritual: "Do one thing today that is purely nourishing — for your body, your space, your peace.", ritualES: 'Haz algo hoy que sea puramente nutritivo — para tu cuerpo, tu espacio, tu paz.',
     moods: ['tender','grounded','flowing','joyful']
   },
   kingofpentacles: {
-    number: "King of Pentacles", name: "King of Pentacles", subtitle: "The material master", symbol: "🏔️", suit: "pentacles",
+    number: "Pentacles · King", name: "King of Pentacles", subtitle: "The material master", symbol: "🏔️", suit: "pentacles",
     archetype: "He sits on his throne covered in grapes and vines, bull carvings at his feet, a castle behind him. He built this. He knows how to keep it.",
     body: "The King of Pentacles has turned the material world into a garden. Your music today is confident and grounded — it knows what it's worth and doesn't argue about it.",
     teas: ['morningblend','earlgrey','genmaicha'],
     tracks: [{ title: "Sinner Man", artist: "Nina Simone" },{ title: "Adagio for Strings", artist: "Samuel Barber" },{ title: "Strange Fruit", artist: "Billie Holiday" },{ title: "Dirt", artist: "Bahamas" }],
-    ritual: "Name one thing you have built that you're proud of. Not proud of what others think. Proud.",
+    ritual: "Name one thing you have built that you're proud of. Not proud of what others think. Proud.", ritualES: 'Nombra algo que hayas construido del que estés orgulloso/a. No por lo que otros piensen. Orgulloso/a.',
     moods: ['grounded','solemn','fierce','expansive']
   }
 
@@ -1928,28 +2082,28 @@ const arcana = {
 // SPANISH ARCANA DATA (Major + Courts for Minor)
 // ─────────────────────────────────────────────
 const arcanaES = {
-  fool:          { name: 'La Locura',             subtitle: 'El luminoso comienzo',               archetype: 'Da un paso al vacío con una flor en la mano y sin mapa. El perro salta también. Esto no es imprudencia. Es fe.',                                                                          body: 'La Locura es la carta de los comienzos puros — antes de que la experiencia se acumule, antes de que el camino se haga cómodo. Tu música está en ese lugar abierto, sin saber todavía. Maravilloso.' },
-  magician:      { name: 'La Magia',              subtitle: 'La voluntad hecha realidad',          archetype: 'Todos los elementos sobre la mesa, una mano al cielo, una a la tierra. El poder fluyendo limpio.',                                                                                         body: 'Esta carta es pura agencia — el momento antes de crear cuando toda posibilidad sigue viva. Tu música está en alto voltaje ahora mismo. Úsalo.' },
-  highpriestess: { name: 'La Suma Sacerdotisa',   subtitle: 'Guardianía del conocimiento oculto',  archetype: 'Se sienta entre los pilares — sin moverse hacia ningún lado. No ofrece respuestas, solo el espacio para encontrar las tuyas.',                                                            body: 'Esta carta habla de la vida interior. La música que te lleva hacia adentro ahora lo hace por una razón. Confía en el silencio entre las notas.' },
-  empress:       { name: 'La Abundancia',         subtitle: 'Riqueza sin disculpas',               archetype: 'Es el campo en plena flor. No justifica su riqueza. Simplemente es.',                                                                                                                    body: 'Esta carta es sensorial, plena, desbordante. Tu música ahora es exuberante — quiere sentirse, no analizarse. Déjala llenar la habitación.' },
-  emperor:       { name: 'La Estructura',         subtitle: 'El peso del orden',                   archetype: 'El trono es de piedra. Las montañas no se mueven. Hay un costo en mantener el orden — y se paga.',                                                                                        body: 'La solemnidad no es tristeza — es tomarse en serio lo que importa. Tu música carga esa gravedad. Hay algo aquí que merece tu atención plena.' },
-  hierophant:    { name: 'La Tradición',          subtitle: 'Raíz y herencia',                     archetype: 'La sabiduría transmitida a través de las manos, la tierra, el acto cotidiano de volver.',                                                                                                body: 'Esta carta honra lo que se ha construido con el tiempo. Tu música tiene raíces — busca algo sólido, algo probado. Eso es fe en la continuidad.' },
-  lovers:        { name: 'El Encuentro',          subtitle: 'La vulnerabilidad compartida',        archetype: 'No solo romance — sino el momento de elegir a otra persona, y al hacerlo, elegirte a ti.',                                                                                               body: 'Esta carta vive en los lugares más expuestos del corazón. Tu música está orientada hacia algo o alguien ahora mismo. Deja que la ternura sea real.' },
-  chariot:       { name: 'El Impulso',            subtitle: 'Voluntad dirigida hacia adelante',    archetype: 'Dos fuerzas opuestas enlazadas — no suprimidas, sino apuntadas. No elimina la contradicción. Avanza a través de ella.',                                                                  body: 'Esta carta es movimiento con propósito. Tu música tiene dirección ahora — hay impulso en ella, aunque no puedas nombrar el destino. Confía en ese avance.' },
-  strength:      { name: 'La Fortaleza',          subtitle: 'Poder sin fuerza bruta',              archetype: 'Abre la boca del león con las manos desnudas — no por dominación, sino por un amor demasiado constante para ser rechazado.',                                                             body: 'La verdadera fortaleza es radicalmente gentil. Tu música es intensa pero no frágil. Hay un núcleo en ella que no necesita probarse.' },
-  hermit:        { name: 'La Soledad',            subtitle: 'Linterna interior',                   archetype: 'Subió la montaña no para escapar, sino para ver con claridad. La linterna es para otros, eventualmente. Por ahora ilumina solo el siguiente paso.',                                      body: 'Esta carta elige la soledad deliberadamente — no es aislamiento, es refinamiento. Tu música es una forma de volverse hacia adentro, una reducción cuidadosa.' },
-  wheeloffortune:{ name: 'La Rueda',              subtitle: 'Rendirse al giro del tiempo',         archetype: 'La rueda no pide permiso. El ciclo no le importa quién eres.',                                                                                                                           body: 'Tu música está tocando algo más grande que el momento — un sentido del tiempo, de los ciclos. Esta carta no es sobre el control. Es sobre saber cuándo soltar.' },
-  justice:       { name: 'La Justicia',           subtitle: 'Claridad y consecuencia',             archetype: 'Las balanzas no mienten. No castiga — simplemente revela lo que siempre fue verdad.',                                                                                                    body: 'La justicia no es castigo; es precisión. Tu música tiene una calidad de ojos abiertos — está nombrando cosas. Algo está siendo sopesado, y ya sabes la respuesta.' },
-  hangedman:     { name: 'La Pausa',              subtitle: 'Suspensión voluntaria',               archetype: 'Esta figura eligió esto. Renunció a algo para ver diferente — y el mundo, invertido, tiene un sentido extraño y nuevo.',                                                                 body: 'Esta carta no está atascada — está esperando a propósito. Tu música tiene esa calidad de pausa, de algo contenido. Esto no es estancamiento. Es quietud estratégica.' },
-  death:         { name: 'La Transformación',     subtitle: 'El fin necesario',                    archetype: 'No es un final, sino un cruce. Algo se está liberando — y eso tiene su propia gracia.',                                                                                                  body: 'Esta carta nunca es solo pérdida. Es la carta de la transformación, de lo que debe soltarse para que algo verdadero emerja. Tu música ya lo sabe.' },
-  temperance:    { name: 'La Alquimia',           subtitle: 'Paciencia creativa',                  archetype: 'Vierte entre dos copas — agua en fuego, fuego en agua — y ninguno es destruido. Esto es integración, no compromiso.',                                                                    body: 'Esta carta habla de la mezcla larga — cosas siendo llevadas lentamente a la armonía. Tu música tiene esa calidad: elementos diferentes que no deberían funcionar juntos, y sin embargo.' },
-  devil:         { name: 'El Deseo',              subtitle: 'La trampa hermosa',                   archetype: 'Las cadenas son suficientemente flojas para quitarlas. Se quedan por elección. El deseo propio es lo que retiene.',                                                                       body: 'Esta carta no avergüenza. Atestigua. Tu música está circulando algo seductor y complejo — un bucle, un patrón, algo a lo que sigues volviendo.' },
-  tower:         { name: 'La Ruptura',            subtitle: 'La ruptura necesaria',                archetype: 'El rayo golpea la corona. Las figuras caen. Pero la torre estaba construida sobre una mentira — y ahora el suelo es honesto.',                                                            body: 'Algo se está abriendo. Tu música lo sabe. Deja que los muros caigan — lo que sobrevive siempre fue real.' },
-  star:          { name: 'La Esperanza',          subtitle: 'Esperanza al borde del agua',         archetype: 'Vierte sin fin en agua y tierra — dando sin agotarse, confiando en la renovación.',                                                                                                      body: 'Esta carta llega después de la ruina. Es la carta de seguir la luz tenue que no se ha apagado. Tu música está buscando algo. Lo encontrará.' },
-  moon:          { name: 'El Umbral',             subtitle: 'El cruce incierto',                   archetype: 'El camino avanza con luz tenue. El agua refleja algo que no es exactamente el cielo.',                                                                                                    body: 'Esta carta gobierna todo lo que está en medio: el umbral, el sueño, lo no resuelto. Tu música vive en ese espacio ahora — medio familiar, ligeramente extraño.' },
-  sun:           { name: 'La Alegría',            subtitle: 'El devenir radiante',                 archetype: 'Alegría sin complicaciones. Un momento que no pide nada a cambio.',                                                                                                                       body: 'Esta carta es la presencia plena, de salir al abierto. Tu lista de reproducción ahora mismo suena a algo que se abre. Déjalo.' },
-  judgement:     { name: 'El Despertar',          subtitle: 'Elevarse después del largo silencio', archetype: 'El ángel toca la trompeta y quienes se elevan no se ven asustados. Se ven aliviados. Esperaban permiso para regresar.',                                                                   body: 'Esta carta no es un veredicto — es un despertar. Algo en ti está elevándose que había sido enterrado. Tu música se siente así: algo que regresa desde lejos.' },
-  world:         { name: 'La Plenitud',           subtitle: 'El círculo completado',               archetype: 'Baila en la corona de laurel. Ha estado en los cuatro rincones y ha regresado. Está bailando.',                                                                                          body: 'Esta carta es plenitud, llegada, la satisfacción de la presencia total. Tu música está celebrando algo — aunque no puedas nombrarlo. Déjalo.' },
+  fool:          { number: 'La · 0',  name: 'La Locura',             subtitle: 'El luminoso comienzo',               archetype: 'Da un paso al vacío con una flor en la mano y sin mapa. El perro salta también. Esto no es imprudencia. Es fe.',                                                                          body: 'La Locura es la carta de los comienzos puros — antes de que la experiencia se acumule, antes de que el camino se haga cómodo. Tu música está en ese lugar abierto, sin saber todavía. Maravilloso.' },
+  magician:      { number: 'La · I',  name: 'La Magia',              subtitle: 'La voluntad hecha realidad',          archetype: 'Todos los elementos sobre la mesa, una mano al cielo, una a la tierra. El poder fluyendo limpio.',                                                                                         body: 'Esta carta es pura agencia — el momento antes de crear cuando toda posibilidad sigue viva. Tu música está en alto voltaje ahora mismo. Úsalo.' },
+  highpriestess: { number: 'La · II', name: 'La Suma Sacerdotisa',   subtitle: 'Guardianía del conocimiento oculto',  archetype: 'Se sienta entre los pilares — sin moverse hacia ningún lado. No ofrece respuestas, solo el espacio para encontrar las tuyas.',                                                            body: 'Esta carta habla de la vida interior. La música que te lleva hacia adentro ahora lo hace por una razón. Confía en el silencio entre las notas.' },
+  empress:       { number: 'La · III',name: 'La Abundancia',         subtitle: 'Riqueza sin disculpas',               archetype: 'Es el campo en plena flor. No justifica su riqueza. Simplemente es.',                                                                                                                    body: 'Esta carta es sensorial, plena, desbordante. Tu música ahora es exuberante — quiere sentirse, no analizarse. Déjala llenar la habitación.' },
+  emperor:       { number: 'La · IV', name: 'La Estructura',         subtitle: 'El peso del orden',                   archetype: 'El trono es de piedra. Las montañas no se mueven. Hay un costo en mantener el orden — y se paga.',                                                                                        body: 'La solemnidad no es tristeza — es tomarse en serio lo que importa. Tu música carga esa gravedad. Hay algo aquí que merece tu atención plena.' },
+  hierophant:    { number: 'La · V',  name: 'La Tradición',          subtitle: 'Raíz y herencia',                     archetype: 'La sabiduría transmitida a través de las manos, la tierra, el acto cotidiano de volver.',                                                                                                body: 'Esta carta honra lo que se ha construido con el tiempo. Tu música tiene raíces — busca algo sólido, algo probado. Eso es fe en la continuidad.' },
+  lovers:        { number: 'La · VI', name: 'El Encuentro',          subtitle: 'La vulnerabilidad compartida',        archetype: 'No solo romance — sino el momento de elegir a otra persona, y al hacerlo, elegirte a ti.',                                                                                               body: 'Esta carta vive en los lugares más expuestos del corazón. Tu música está orientada hacia algo o alguien ahora mismo. Deja que la ternura sea real.' },
+  chariot:       { number: 'La · VII',name: 'El Impulso',            subtitle: 'Voluntad dirigida hacia adelante',    archetype: 'Dos fuerzas opuestas enlazadas — no suprimidas, sino apuntadas. No elimina la contradicción. Avanza a través de ella.',                                                                  body: 'Esta carta es movimiento con propósito. Tu música tiene dirección ahora — hay impulso en ella, aunque no puedas nombrar el destino. Confía en ese avance.' },
+  strength:      { number: 'La · VIII',name: 'La Fortaleza',          subtitle: 'Poder sin fuerza bruta',              archetype: 'Abre la boca del león con las manos desnudas — no por dominación, sino por un amor demasiado constante para ser rechazado.',                                                             body: 'La verdadera fortaleza es radicalmente gentil. Tu música es intensa pero no frágil. Hay un núcleo en ella que no necesita probarse.' },
+  hermit:        { number: 'La · IX', name: 'La Soledad',            subtitle: 'Linterna interior',                   archetype: 'Subió la montaña no para escapar, sino para ver con claridad. La linterna es para otros, eventualmente. Por ahora ilumina solo el siguiente paso.',                                      body: 'Esta carta elige la soledad deliberadamente — no es aislamiento, es refinamiento. Tu música es una forma de volverse hacia adentro, una reducción cuidadosa.' },
+  wheeloffortune:{ number: 'La · X',  name: 'La Rueda',              subtitle: 'Rendirse al giro del tiempo',         archetype: 'La rueda no pide permiso. El ciclo no le importa quién eres.',                                                                                                                           body: 'Tu música está tocando algo más grande que el momento — un sentido del tiempo, de los ciclos. Esta carta no es sobre el control. Es sobre saber cuándo soltar.' },
+  justice:       { number: 'La · XI', name: 'La Justicia',           subtitle: 'Claridad y consecuencia',             archetype: 'Las balanzas no mienten. No castiga — simplemente revela lo que siempre fue verdad.',                                                                                                    body: 'La justicia no es castigo; es precisión. Tu música tiene una calidad de ojos abiertos — está nombrando cosas. Algo está siendo sopesado, y ya sabes la respuesta.' },
+  hangedman:     { number: 'La · XII',name: 'La Pausa',              subtitle: 'Suspensión voluntaria',               archetype: 'Esta figura eligió esto. Renunció a algo para ver diferente — y el mundo, invertido, tiene un sentido extraño y nuevo.',                                                                 body: 'Esta carta no está atascada — está esperando a propósito. Tu música tiene esa calidad de pausa, de algo contenido. Esto no es estancamiento. Es quietud estratégica.' },
+  death:         { number: 'La · XIII',name: 'La Transformación',     subtitle: 'El fin necesario',                    archetype: 'No es un final, sino un cruce. Algo se está liberando — y eso tiene su propia gracia.',                                                                                                  body: 'Esta carta nunca es solo pérdida. Es la carta de la transformación, de lo que debe soltarse para que algo verdadero emerja. Tu música ya lo sabe.' },
+  temperance:    { number: 'La · XIV',name: 'La Alquimia',           subtitle: 'Paciencia creativa',                  archetype: 'Vierte entre dos copas — agua en fuego, fuego en agua — y ninguno es destruido. Esto es integración, no compromiso.',                                                                    body: 'Esta carta habla de la mezcla larga — cosas siendo llevadas lentamente a la armonía. Tu música tiene esa calidad: elementos diferentes que no deberían funcionar juntos, y sin embargo.' },
+  devil:         { number: 'La · XV', name: 'El Deseo',              subtitle: 'La trampa hermosa',                   archetype: 'Las cadenas son suficientemente flojas para quitarlas. Se quedan por elección. El deseo propio es lo que retiene.',                                                                       body: 'Esta carta no avergüenza. Atestigua. Tu música está circulando algo seductor y complejo — un bucle, un patrón, algo a lo que sigues volviendo.' },
+  tower:         { number: 'La · XVI',name: 'La Ruptura',            subtitle: 'La ruptura necesaria',                archetype: 'El rayo golpea la corona. Las figuras caen. Pero la torre estaba construida sobre una mentira — y ahora el suelo es honesto.',                                                            body: 'Algo se está abriendo. Tu música lo sabe. Deja que los muros caigan — lo que sobrevive siempre fue real.' },
+  star:          { number: 'La · XVII',name: 'La Esperanza',          subtitle: 'Esperanza al borde del agua',         archetype: 'Vierte sin fin en agua y tierra — dando sin agotarse, confiando en la renovación.',                                                                                                      body: 'Esta carta llega después de la ruina. Es la carta de seguir la luz tenue que no se ha apagado. Tu música está buscando algo. Lo encontrará.' },
+  moon:          { number: 'La · XVIII',name: 'El Umbral',             subtitle: 'El cruce incierto',                   archetype: 'El camino avanza con luz tenue. El agua refleja algo que no es exactamente el cielo.',                                                                                                    body: 'Esta carta gobierna todo lo que está en medio: el umbral, el sueño, lo no resuelto. Tu música vive en ese espacio ahora — medio familiar, ligeramente extraño.' },
+  sun:           { number: 'La · XIX',name: 'La Alegría',            subtitle: 'El devenir radiante',                 archetype: 'Alegría sin complicaciones. Un momento que no pide nada a cambio.',                                                                                                                       body: 'Esta carta es la presencia plena, de salir al abierto. Tu lista de reproducción ahora mismo suena a algo que se abre. Déjalo.' },
+  judgement:     { number: 'La · XX', name: 'El Despertar',          subtitle: 'Elevarse después del largo silencio', archetype: 'El ángel toca la trompeta y quienes se elevan no se ven asustados. Se ven aliviados. Esperaban permiso para regresar.',                                                                   body: 'Esta carta no es un veredicto — es un despertar. Algo en ti está elevándose que había sido enterrado. Tu música se siente así: algo que regresa desde lejos.' },
+  world:         { number: 'La · XXI',name: 'La Plenitud',           subtitle: 'El círculo completado',               archetype: 'Baila en la corona de laurel. Ha estado en los cuatro rincones y ha regresado. Está bailando.',                                                                                          body: 'Esta carta es plenitud, llegada, la satisfacción de la presencia total. Tu música está celebrando algo — aunque no puedas nombrarlo. Déjalo.' },
   // Minor Arcana — Spanish names for suits/courts
   aceofcups:     { name: 'As de Copas',           subtitle: 'El corazón desbordante',              archetype: 'Una copa desborda con cinco corrientes. El comienzo de todo sentimiento.',                                                                                                               body: 'Nuevos comienzos emocionales están aquí. Tu música está abriendo una puerta en el pecho que habías olvidado. Deja que lo que llegue, llegue.' },
   twoofcups:     { name: 'Dos de Copas',          subtitle: 'El reconocimiento mutuo',             archetype: 'Dos figuras intercambian copas — y en el intercambio, algo mutuo es nombrado.',                                                                                                          body: 'Esta carta habla de la conexión reconocida. Tu música habla de ser visto y de ver. Alguien hizo esto para alguien exactamente como tú.' },
@@ -2303,6 +2457,50 @@ function showResult() {
   setTimeout(() => renderResult(p), 1400);
 }
 
+// ─────────────────────────────────────────────
+// CARD FLIP & IMAGE
+// ─────────────────────────────────────────────
+// Images live at: /images/cards/{cardKey}.jpg
+// e.g. /images/cards/fool.jpg, /images/cards/queenofcups.jpg
+// If no image is found, the symbol shows as fallback.
+
+let cardIsFlipped = false;
+
+function setupCardFlip(cardKey, symbol) {
+  // Reset flip state
+  cardIsFlipped = false;
+  document.getElementById('cardFlipWrap').classList.remove('flipped');
+  document.getElementById('cardBackSymbol').textContent = symbol || '✦';
+
+  // Reset hint
+  const hint = document.getElementById('cardFlipHint');
+  hint.classList.remove('hidden');
+  hint.textContent = currentLang === 'es' ? 'toca para revelar' : 'tap to reveal';
+
+  // Build front face
+  const front = document.getElementById('cardFront');
+  front.innerHTML = '';
+
+  const img = new Image();
+  img.src = `images/cards/${cardKey}.jpg`;
+  img.alt = cardKey;
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+
+  img.onload = () => { front.appendChild(img); };
+  img.onerror = () => {
+    // Fallback — show symbol elegantly
+    front.innerHTML = `<div class="card-front-fallback">${symbol || '✦'}</div>`;
+  };
+}
+
+function flipCard() {
+  if (cardIsFlipped) return;
+  cardIsFlipped = true;
+  document.getElementById('cardFlipWrap').classList.add('flipped');
+  const hint = document.getElementById('cardFlipHint');
+  hint.classList.add('hidden');
+}
+
 function renderResult(p) {
   document.getElementById('loadingState').style.display = 'none';
 
@@ -2310,7 +2508,7 @@ function renderResult(p) {
   const es = (currentLang === 'es' && arcanaES[selectedCard]) ? arcanaES[selectedCard] : null;
 
   document.getElementById('cardSymbol').textContent = p.symbol;
-  document.getElementById('cardNumber').textContent = p.number;
+  document.getElementById('cardNumber').textContent = (currentLang === 'es' && es && es.number) ? es.number : p.number;
   document.getElementById('cardName').textContent = es ? es.name : p.name;
   document.getElementById('cardSubtitle').textContent = es ? es.subtitle : p.subtitle;
 
@@ -2319,12 +2517,12 @@ function renderResult(p) {
   const suitMapES = { major: '✦ Arcanos Mayores', cups: '◎ Copas', wands: '△ Bastos', swords: '⟡ Espadas', pentacles: '◈ Oros' };
   const suitEl = document.getElementById('cardSuit');
   if (suitEl) suitEl.textContent = currentLang === 'es' ? (suitMapES[p.suit] || '') : (suitMap[p.suit] || '');
+
+  // Set up card flip
+  setupCardFlip(selectedCard, p.symbol);
   document.getElementById('archetypeText').textContent = es ? es.archetype : p.archetype;
   document.getElementById('cardBody').textContent = es ? es.body : p.body;
-  document.getElementById('ritualText').textContent = p.ritual; // ritual stays EN (poetic, intentional)
-
-  // Apply UI translations
-  applyTranslations();
+  document.getElementById('ritualText').textContent = (currentLang === 'es' && p.ritualES) ? p.ritualES : p.ritual;
 
   // Show intention carried forward
   if (currentIntention) {
@@ -2354,7 +2552,7 @@ function renderTea(p) {
   const tea = teaLibrary[teaId];
   document.getElementById('teaFamily').textContent = tea.familyTag;
   document.getElementById('teaName').textContent = tea.name;
-  document.getElementById('teaNote').textContent = tea.note;
+  document.getElementById('teaNote').textContent = (currentLang === 'es' && tea.noteES) ? tea.noteES : tea.note;
   document.getElementById('teaOrigin').textContent = tea.origin;
   document.getElementById('teaFlavour').textContent = tea.flavour;
   document.getElementById('teaBrew').textContent = tea.brew;
@@ -2364,6 +2562,10 @@ function renderTea(p) {
   teaDetailOpen = false;
   document.getElementById('teaDetail').classList.remove('visible');
   document.getElementById('teaExpandIcon').classList.remove('open');
+
+  // Hide "about this tea" for the generic othertisane entry
+  const expandBtn = document.getElementById('teaExpandBtn');
+  expandBtn.style.display = teaId === 'othertisane' ? 'none' : '';
 
   // Check cupboard match
   if (cupboardSaved && cupboardTeas.size > 0) {
@@ -2410,6 +2612,17 @@ function buildCupboardGrid() {
     `;
     grid.appendChild(item);
   });
+
+  // "Something else" catch-all
+  const elseItem = document.createElement('div');
+  elseItem.className = 'cupboard-item';
+  const elseLabel = currentLang === 'es' ? 'Algo más' : 'Something else';
+  const elseChecked = cupboardTeas.has('other') ? 'checked' : '';
+  elseItem.innerHTML = `
+    <input type="checkbox" id="cb_other" ${elseChecked} onchange="toggleCupboardTea('other')">
+    <label for="cb_other" style="font-style:italic;">${elseLabel}</label>
+  `;
+  grid.appendChild(elseItem);
 }
 
 function toggleCupboardTea(id) {
